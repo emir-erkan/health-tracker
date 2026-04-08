@@ -410,7 +410,6 @@
 
 <div id="flash">✓ Done</div>
 
-<!-- HEADER -->
 <header>
   <div class="header-label">Health Tracker</div>
   <div class="header-title" id="headerName">Emir's Dashboard</div>
@@ -421,7 +420,6 @@
   </div>
 </header>
 
-<!-- TABS -->
 <div class="wrap">
   <div class="tabs">
     <button class="tab active" onclick="switchTab('today')">Today</button>
@@ -430,10 +428,8 @@
     <button class="tab" onclick="switchTab('settings')">Settings</button>
   </div>
 
-  <!-- ═══ TODAY ═══ -->
   <div id="tab-today" class="stagger">
 
-    <!-- Progress -->
     <div class="progress-grid">
       <div class="prog-card">
         <div class="prog-label">Calories</div>
@@ -451,7 +447,6 @@
       </div>
     </div>
 
-    <!-- Weight -->
     <div class="card">
       <div class="card-label">Log Today's Weight</div>
       <div class="input-row">
@@ -460,7 +455,6 @@
       </div>
     </div>
 
-    <!-- Add Food -->
     <div class="card">
       <div class="card-label">Add Food</div>
       <button class="btn btn-ghost" onclick="togglePresets()" id="presetBtn" style="margin-bottom:10px">▼ Quick Add from Library</button>
@@ -473,7 +467,6 @@
       <button class="btn btn-primary" onclick="addFood()">+ Add to Log</button>
     </div>
 
-    <!-- Today Log -->
     <div class="card" id="todayLogCard" style="display:none">
       <div class="card-label">Today's Log</div>
       <div id="todayLog"></div>
@@ -481,28 +474,23 @@
 
   </div>
 
-  <!-- ═══ HISTORY ═══ -->
   <div id="tab-history" class="hidden">
 
-    <!-- Weight Chart -->
     <div class="card">
       <div class="card-label">Weight — Last 14 Days</div>
       <svg id="weightChart" viewBox="0 0 440 130" style="width:100%;height:130px"></svg>
     </div>
 
-    <!-- Calorie Chart -->
     <div class="card">
       <div class="card-label">Calories — Last 14 Days</div>
       <div id="calChart" style="display:flex;align-items:flex-end;gap:4px;height:90px;padding-bottom:20px;position:relative"></div>
     </div>
 
-    <!-- Daily History -->
     <div class="section-label">Daily Breakdown</div>
     <div id="historyList"></div>
 
   </div>
 
-  <!-- ═══ LIBRARY ═══ -->
   <div id="tab-library" class="hidden">
     <button class="btn btn-primary" onclick="toggleAddCustom()" style="margin-bottom:12px">+ Save New Food to Library</button>
 
@@ -529,7 +517,6 @@
     <input type="file" id="importFile" accept=".json" class="hidden" onchange="handleImport(event)">
   </div>
 
-  <!-- ═══ SETTINGS ═══ -->
   <div id="tab-settings" class="hidden">
     <div class="card">
       <div class="card-label">Goals</div>
@@ -558,9 +545,7 @@
     </div>
   </div>
 
-</div><!-- /wrap -->
-
-<script>
+</div><script>
 // ═══════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════
@@ -606,6 +591,7 @@ async function save(key, val) {
     flash("Cloud sync failed. Saved locally.", "var(--red)");
   }
 }
+
 // ═══════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════
@@ -1059,3 +1045,6 @@ async function initApp() {
 }
 
 initApp();
+</script>
+</body>
+</html>
