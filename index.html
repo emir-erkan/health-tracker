@@ -293,7 +293,7 @@
 const CLOUD_URL = "https://script.google.com/macros/s/AKfycbyB4mhtJc72HuXtK1Lv97yhGzvhKv5cwl75J6ph6Z0kYCiOxa0PMdthaey0aG819JS2/exec";
 
 let activeUser = localStorage.getItem('ht_active_user');
-let masterData = {}; // Holds all users: { "Emir": { logs: {}, weights: {}, settings: {}, custom: [] } }
+let masterData = {}; // Holds all users: { "Emir": { logs: {}, weights: {}, settings: {}, customFoods: [] } }
 
 // Default user template
 const defaultSettings = { calGoal: 1850, protGoal: 140, weightGoal: 75 };
@@ -325,6 +325,43 @@ async function initApp() {
     masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
   }
 
+  // --- MIGRATION LOGIC: Move old data ONLY to the "Emir" profile ---
+  let needsMigration = false;
+  let migratedData = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [] };
+
+  // Check if old data exists at the root level (from previous versions of the app)
+  if ((masterData.logs || localStorage.getItem('ht_logs')) && !masterData["Emir"]) {
+    // Grab from masterData if it exists, otherwise fallback to old localStorage
+    migratedData.logs = masterData.logs || JSON.parse(localStorage.getItem('ht_logs') || '{}');
+    migratedData.weights = masterData.weights || JSON.parse(localStorage.getItem('ht_weights') || '{}');
+    migratedData.settings = masterData.settings || JSON.parse(localStorage.getItem('ht_settings') || {...defaultSettings});
+    migratedData.customFoods = masterData.customFoods || JSON.parse(localStorage.getItem('ht_custom') || '[]');
+    needsMigration = true;
+  }
+
+  if (needsMigration) {
+    masterData["Emir"] = migratedData;
+    
+    // Clean up old root data in masterData so it doesn't trigger again or clutter the db
+    delete masterData.logs;
+    delete masterData.weights;
+    delete masterData.settings;
+    delete masterData.customFoods;
+    delete masterData.exported;
+    
+    // Clean up old localStorage keys
+    localStorage.removeItem('ht_logs');
+    localStorage.removeItem('ht_weights');
+    localStorage.removeItem('ht_settings');
+    localStorage.removeItem('ht_custom');
+
+    // Auto-save the new structure to the cloud
+    saveCloud();
+    flash("Old data migrated to Emir profile!");
+  }
+  // -----------------------------------------------------------------
+
+  // Standard user setup: New accounts get completely fresh, blank data
   if (activeUser && !masterData[activeUser]) {
     masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [] };
   }
