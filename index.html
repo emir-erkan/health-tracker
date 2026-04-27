@@ -3,35 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emir — Health Tracker OS</title>
+<title>STRONG</title>
+<meta name="description" content="STRONG — Track your nutrition, protein, water and body goals.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root[data-theme="dark"] {
-    --bg-app: #121215;
-    --bg-panel: rgba(28, 28, 34, 0.65);
-    --bg-card: rgba(37, 37, 44, 0.65);
+    --bg-app: #0C0C0C;
+    --bg-panel: rgba(18, 18, 20, 0.85);
+    --bg-card: rgba(28, 28, 30, 0.85);
     --text-main: #ffffff;
     --text-muted: #8a8a98;
     --border: rgba(45, 45, 53, 0.8);
-    --border-hover: rgba(58, 58, 69, 0.8);
-    --accent: #ff6b00; 
-    --accent-glow: rgba(255, 107, 0, 0.3);
+    --border-hover: rgba(70, 70, 80, 0.8);
+    --accent: #ff4e00;
+    --accent-glow: rgba(255, 78, 0, 0.35);
     --green: #22c55e;
     --red: #ef4444;
     --yellow: #eab308;
   }
 
   :root[data-theme="light"] {
-    --bg-app: #f4f5f7;
-    --bg-panel: rgba(255, 255, 255, 0.7);
-    --bg-card: rgba(249, 250, 251, 0.7);
-    --text-main: #111827;
+    --bg-app: #f4f4f4;
+    --bg-panel: rgba(255, 255, 255, 0.8);
+    --bg-card: rgba(248, 248, 248, 0.8);
+    --text-main: #0C0C0C;
     --text-muted: #6b7280;
-    --border: rgba(229, 231, 235, 0.8);
-    --border-hover: rgba(209, 213, 219, 0.8);
-    --accent: #ff6b00; 
-    --accent-glow: rgba(255, 107, 0, 0.2);
+    --border: rgba(220, 220, 225, 0.8);
+    --border-hover: rgba(200, 200, 210, 0.8);
+    --accent: #ff4e00;
+    --accent-glow: rgba(255, 78, 0, 0.2);
     --green: #16a34a;
     --red: #dc2626;
     --yellow: #ca8a04;
@@ -63,12 +65,15 @@
   .delay-3 { animation-delay: 0.15s; }
 
   /* LOGIN OVERLAY */
-  #authScreen { position: fixed; inset: 0; background: var(--bg-app); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #authScreen { position: fixed; inset: 0; background: #0C0C0C; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
   .auth-box { background: var(--bg-panel); padding: 40px; border-radius: 24px; border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center; }
+  .auth-wordmark { height: 40px; object-fit: contain; margin: 0 auto 28px; display: block; }
+  .auth-icon { width: 56px; height: 56px; margin: 0 auto 20px; display: block; }
   
   /* LAYOUT */
   .sidebar { width: 80px; background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 24px; z-index: 10; }
-  .sidebar-logo { width: 40px; height: 40px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Syne'; font-weight: 800; color: #fff; font-size: 20px; margin-bottom: 20px;}
+  .sidebar-logo { width: 44px; height: 44px; background: #ff4e00; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px; flex-shrink: 0; }
+  .sidebar-logo img { width: 36px; height: 36px; object-fit: contain; }
   .nav-item { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; }
   .nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 8px 20px var(--accent-glow); transform: scale(1.05); }
   .nav-item:hover:not(.active) { background: var(--bg-card); color: var(--text-main); transform: scale(1.05); }
@@ -181,17 +186,59 @@
 <div id="flash"><i data-lucide="check-circle" style="width:18px;height:18px"></i> <span id="flashText">Success</span></div>
 
 <div id="authScreen">
-  <div class="auth-box animate-in">
-    <div class="sidebar-logo" style="margin: 0 auto 20px;">H</div>
-    <h1 class="title" style="justify-content:center">Welcome Back</h1>
-    <p class="subtitle" style="margin-bottom: 24px;">Enter your profile name to continue</p>
-    <input type="text" id="usernameInput" placeholder="e.g. Emir" style="text-align:center; font-size: 18px; font-weight: 600;">
-    <button class="btn" onclick="login()">Enter Dashboard <i data-lucide="arrow-right" style="width:18px"></i></button>
+  <div class="auth-box animate-in" id="authLogin">
+    <img src="assets/wordmark.png" alt="STRONG" class="auth-wordmark" onerror="this.style.display='none'">
+    <p class="subtitle" style="margin-bottom: 24px;">Welcome back. Log in to continue.</p>
+    <button class="btn" style="background:#fff; color:#000; border:1px solid #ccc; margin-bottom:16px;" onclick="window.googleSignInAction()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;"> Sign in with Google
+    </button>
+    <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px; border-bottom:1px solid var(--border); line-height:0.1em; margin-top:10px; margin-bottom:20px;">
+      <span style="background:var(--bg-panel); padding:0 10px;">OR EMAIL</span>
+    </div>
+    <input type="text" id="loginUser" placeholder="Email Address" style="text-align:center; font-size:16px; font-weight:600;">
+    <input type="password" id="loginPass" placeholder="Password" style="text-align:center; font-size:16px;">
+    <button class="btn" onclick="window.loginAction()" style="margin-bottom:12px">Log In <i data-lucide="arrow-right" style="width:18px"></i></button>
+    <p id="authError" style="color:var(--red); font-size:13px; min-height:20px; margin-bottom:12px;"></p>
+    <p style="font-size:13px; color:var(--text-muted)">No account? <a href="#" onclick="showSignup(); return false;" style="color:var(--accent); font-weight:600; text-decoration:none;">Sign Up</a></p>
+  </div>
+
+  <div class="auth-box animate-in hidden" id="authSignup">
+    <img src="assets/wordmark.png" alt="STRONG" class="auth-wordmark" onerror="this.style.display='none'">
+    <p class="subtitle" style="margin-bottom: 24px;">Create your STRONG account.</p>
+    <button class="btn" style="background:#fff; color:#000; border:1px solid #ccc; margin-bottom:16px;" onclick="window.googleSignInAction()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;"> Sign up with Google
+    </button>
+    <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px; border-bottom:1px solid var(--border); line-height:0.1em; margin-top:10px; margin-bottom:20px;">
+      <span style="background:var(--bg-panel); padding:0 10px;">OR EMAIL</span>
+    </div>
+    <input type="text" id="signupUser" placeholder="Email Address" style="text-align:center; font-size:16px; font-weight:600;">
+    <input type="password" id="signupPass" placeholder="Create password (min 6 chars)" style="text-align:center; font-size:16px;">
+    <input type="password" id="signupConfirm" placeholder="Confirm password" style="text-align:center; font-size:16px;">
+    <button class="btn" onclick="window.signupAction()" style="margin-bottom:12px">Create Account <i data-lucide="user-plus" style="width:18px"></i></button>
+    <p id="signupError" style="color:var(--red); font-size:13px; min-height:20px; margin-bottom:12px;"></p>
+    <p style="font-size:13px; color:var(--text-muted)">Already have an account? <a href="#" onclick="showLogin(); return false;" style="color:var(--accent); font-weight:600; text-decoration:none;">Log In</a></p>
+  </div>
+
+  <div class="auth-box animate-in hidden" id="authOnboard">
+    <img src="assets/icon.svg" alt="STRONG" class="auth-icon" onerror="this.style.display='none'">
+    <h1 class="title" style="justify-content:center; font-size:20px;">Set Your Goals</h1>
+    <p class="subtitle" style="margin-bottom: 24px;">Personalize your daily targets</p>
+    <p class="subtitle">Daily Calorie Target (kcal)</p>
+    <input type="number" id="obCal" value="1850" style="text-align:center; font-size:16px; font-weight:600;">
+    <p class="subtitle">Daily Protein Target (g)</p>
+    <input type="number" id="obProt" value="140" style="text-align:center; font-size:16px; font-weight:600;">
+    <p class="subtitle">Target Weight (kg)</p>
+    <input type="number" id="obWeight" value="75" style="text-align:center; font-size:16px; font-weight:600;">
+    <p class="subtitle">Daily Water Target (ml)</p>
+    <input type="number" id="obWater" value="3000" style="text-align:center; font-size:16px; font-weight:600;">
+    <button class="btn" onclick="finishOnboarding()" style="margin-top:8px">Start Tracking <i data-lucide="rocket" style="width:18px"></i></button>
   </div>
 </div>
 
 <div class="sidebar">
-  <div class="sidebar-logo">H</div>
+  <div class="sidebar-logo">
+    <img src="assets/icon.svg" alt="STRONG" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne;font-weight:800;color:#fff;font-size:14px;\'>S</span>'">
+  </div>
   <button class="nav-item active" onclick="switchTab('dash')" id="nav-dash" title="Dashboard"><i data-lucide="layout-dashboard"></i></button>
   <button class="nav-item" onclick="switchTab('hist')" id="nav-hist" title="History"><i data-lucide="bar-chart-2"></i></button>
   <button class="nav-item" onclick="switchTab('lib')" id="nav-lib" title="Library"><i data-lucide="book-open"></i></button>
@@ -353,6 +400,10 @@
         <input type="number" id="setWater">
         <button class="btn" style="margin-top:16px" onclick="saveSettings()"><i data-lucide="check-circle"></i> Save Goals</button>
       </div>
+      
+      <div style="text-align:center; margin-top: 40px; font-size: 13px; color: var(--text-muted); font-family: 'DM Sans', sans-serif;">
+        Made by <a href="https://emirerkan.com" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">emirerkan.com</a>
+      </div>
     </div>
 
   </div>
@@ -366,7 +417,7 @@
       <div id="todayList" style="margin-top:24px; min-height: 200px;">
         </div>
       
-      <div style="margin-top:40px" class="card" style="padding: 20px;">
+      <div class="card" style="margin-top:40px; padding: 20px;">
         <h3 style="margin-bottom:16px; font-size:16px">Macro Analysis</h3>
         <div style="display:flex; align-items:center; gap:20px;">
           <div style="position:relative; width:80px; height:80px; flex-shrink:0;">
@@ -392,14 +443,97 @@
   </div>
 </div>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeVt_0BqN0zC9KiVDCpGlTvzqhaf5Z90s",
+  authDomain: "strong-8bfb4.firebaseapp.com",
+  projectId: "strong-8bfb4",
+  storageBucket: "strong-8bfb4.firebasestorage.app",
+  messagingSenderId: "58639285372",
+  appId: "1:58639285372:web:19f301fbfffc0d2a195df9",
+  measurementId: "G-E1SFCVXJ9P"
+};
+
+const app = initializeApp(firebaseConfig);
+getAnalytics(app);
+const auth = getAuth(app);
+
+// Expose Firebase auth actions to window so plain scripts can call them
+window._firebaseReady = false;
+window._firebaseAuth = auth;
+
+window.googleSignInAction = async function() {
+  const provider = new GoogleAuthProvider();
+  try {
+    document.getElementById('authError').textContent = 'Opening Google sign-in…';
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
+  } catch (error) {
+    document.getElementById('authError').textContent = error.message;
+  }
+};
+
+window.loginAction = async function() {
+  const email = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { document.getElementById('authError').textContent = 'Please fill in all fields.'; return; }
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    window.handleSuccessfulLogin(cred.user.uid, cred.user.email, cred.user.displayName || cred.user.email);
+  } catch (error) {
+    document.getElementById('authError').textContent = error.message;
+  }
+};
+
+window.signupAction = async function() {
+  const email = document.getElementById('signupUser').value.trim();
+  const pass  = document.getElementById('signupPass').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  if (!email || !pass || !confirm) { document.getElementById('signupError').textContent = 'Please fill in all fields.'; return; }
+  if (pass.length < 6) { document.getElementById('signupError').textContent = 'Password must be at least 6 characters.'; return; }
+  if (pass !== confirm) { document.getElementById('signupError').textContent = 'Passwords do not match.'; return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    window.activeUser = cred.user.uid;
+    localStorage.setItem('ht_active_user', window.activeUser);
+    localStorage.setItem('ht_active_user_email', email);
+    window.showOnboarding();
+  } catch (error) {
+    document.getElementById('signupError').textContent = error.message;
+  }
+};
+
+window._firebaseSignOut = () => signOut(auth);
+window._firebaseReady = true;
+</script>
+
 <script>
+
+// ═══════════════════════════════════════════
+// SECURITY HELPERS
+// ═══════════════════════════════════════════
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+
+
 // ═══════════════════════════════════════════
 // CLOUD / STATE MANAGEMENT
 // ═══════════════════════════════════════════
 const CLOUD_URL = "https://script.google.com/macros/s/AKfycbyB4mhtJc72HuXtK1Lv97yhGzvhKv5cwl75J6ph6Z0kYCiOxa0PMdthaey0aG819JS2/exec";
 
 let activeUser = localStorage.getItem('ht_active_user');
-let masterData = {}; 
+let activeUserEmail = localStorage.getItem('ht_active_user_email');
+let masterData = {};
+let editingFoodIdx = undefined;
 
 const defaultSettings = { calGoal: 1850, protGoal: 140, weightGoal: 75, waterGoal: 3000 };
 const PRESET_FOODS = [
@@ -411,14 +545,21 @@ const PRESET_FOODS = [
   { name: "Whey Protein (1 scoop)", calories: 120, protein: 25 }
 ];
 
+// Restore theme from localStorage
+(function() {
+  const savedTheme = localStorage.getItem('ht_theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+})();
+
 async function initApp() {
   lucide.createIcons();
   applyThemeIcon();
 
   if (activeUser) {
     document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('userDisplay').textContent = activeUser;
-    document.getElementById('userInitial').textContent = activeUser.charAt(0).toUpperCase();
+    const displayStr = (activeUserEmail || activeUser).split('@')[0];
+    document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
+    document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
   }
   
   document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en', { weekday: 'short', day: '2-digit', month: 'long' });
@@ -432,23 +573,28 @@ async function initApp() {
     masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
   }
 
-  let needsMigration = false;
-  let migratedData = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [] };
-
-  if ((masterData.logs || localStorage.getItem('ht_logs')) && !masterData["Emir"]) {
-    migratedData.logs = masterData.logs || JSON.parse(localStorage.getItem('ht_logs') || '{}');
-    migratedData.weights = masterData.weights || JSON.parse(localStorage.getItem('ht_weights') || '{}');
-    migratedData.settings = masterData.settings || JSON.parse(localStorage.getItem('ht_settings') || {...defaultSettings});
-    migratedData.customFoods = masterData.customFoods || JSON.parse(localStorage.getItem('ht_custom') || '[]');
-    needsMigration = true;
-  }
-
-  if (needsMigration) {
-    masterData["Emir"] = migratedData;
+  // Data migration for legacy single-user data
+  if ((masterData.logs || localStorage.getItem('ht_logs')) && !masterData[activeUser || "Emir"]) {
+    const migratedData = {
+      logs: masterData.logs || JSON.parse(localStorage.getItem('ht_logs') || '{}'),
+      weights: masterData.weights || JSON.parse(localStorage.getItem('ht_weights') || '{}'),
+      settings: masterData.settings || {...defaultSettings},
+      customFoods: masterData.customFoods || JSON.parse(localStorage.getItem('ht_custom') || '[]')
+    };
+    masterData[activeUser || "Emir"] = migratedData;
     delete masterData.logs; delete masterData.weights; delete masterData.settings; delete masterData.customFoods;
     localStorage.removeItem('ht_logs'); localStorage.removeItem('ht_weights'); localStorage.removeItem('ht_settings'); localStorage.removeItem('ht_custom');
     saveCloud();
     flash("Old data migrated!");
+  }
+
+  // Specific migration for emirerkan1235@gmail.com
+  if (activeUserEmail === 'emirerkan1235@gmail.com' && masterData['Emir']) {
+    if (!masterData[activeUser] || !masterData[activeUser].logs || Object.keys(masterData[activeUser].logs).length === 0) {
+      masterData[activeUser] = JSON.parse(JSON.stringify(masterData['Emir']));
+      saveCloud();
+      flash("Data successfully moved to your account!");
+    }
   }
 
   if (activeUser && !masterData[activeUser]) {
@@ -461,25 +607,96 @@ async function initApp() {
 }
 
 async function saveCloud() {
-  localStorage.setItem('ht_master', JSON.stringify(masterData));
-  fetch(CLOUD_URL, { method: 'POST', body: JSON.stringify(masterData) });
+  try {
+    localStorage.setItem('ht_master', JSON.stringify(masterData));
+    await fetch(CLOUD_URL, { method: 'POST', body: JSON.stringify(masterData) });
+  } catch(e) {
+    console.warn('Cloud sync failed, data saved locally.', e);
+  }
 }
 
-function getUser() { return masterData[activeUser]; }
-
-function login() {
-  const name = document.getElementById('usernameInput').value.trim();
-  if(!name) return;
-  activeUser = name;
-  localStorage.setItem('ht_active_user', name);
-  initApp();
+function getUser() {
+  const u = masterData[activeUser];
+  if (!u) { logout(); return { logs:{}, weights:{}, settings:{...defaultSettings}, customFoods:[] }; }
+  if (!u.settings) u.settings = {...defaultSettings};
+  if (!u.settings.waterGoal) u.settings.waterGoal = 3000;
+  return u;
 }
 
-function logout() {
+function showLogin() {
+  document.getElementById('authLogin').classList.remove('hidden');
+  document.getElementById('authSignup').classList.add('hidden');
+  document.getElementById('authOnboard').classList.add('hidden');
+  document.getElementById('authError').textContent = '';
+  lucide.createIcons();
+}
+
+function showSignup() {
+  document.getElementById('authLogin').classList.add('hidden');
+  document.getElementById('authSignup').classList.remove('hidden');
+  document.getElementById('authOnboard').classList.add('hidden');
+  document.getElementById('signupError').textContent = '';
+  lucide.createIcons();
+}
+
+function showOnboarding() {
+  document.getElementById('authLogin').classList.add('hidden');
+  document.getElementById('authSignup').classList.add('hidden');
+  document.getElementById('authOnboard').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function handleSuccessfulLogin(uid, email, displayName) {
+  activeUser = uid;
+  activeUserEmail = email;
+  localStorage.setItem('ht_active_user', uid);
+  localStorage.setItem('ht_active_user_email', email);
+  document.getElementById('authScreen').style.display = 'none';
+  const displayStr = email.split('@')[0];
+  document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
+  document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
+  
+  if (!masterData[uid]) {
+    showOnboarding();
+  } else {
+    initApp();
+  }
+}
+// Expose to module script
+window.handleSuccessfulLogin = handleSuccessfulLogin;
+window.showOnboarding = showOnboarding;
+
+function finishOnboarding() {
+  const calGoal = parseFloat(document.getElementById('obCal').value) || 1850;
+  const protGoal = parseFloat(document.getElementById('obProt').value) || 140;
+  const weightGoal = parseFloat(document.getElementById('obWeight').value) || 75;
+  const waterGoal = parseFloat(document.getElementById('obWater').value) || 3000;
+  
+  masterData[activeUser] = {
+    logs: {}, weights: {},
+    settings: { calGoal, protGoal, weightGoal, waterGoal },
+    customFoods: [...PRESET_FOODS]
+  };
+  
+  saveCloud();
+  document.getElementById('authScreen').style.display = 'none';
+  const displayStr = (activeUserEmail || activeUser).split('@')[0];
+  document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
+  document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
+  renderAll();
+  flash("Welcome!");
+}
+
+async function logout() {
+  try { if (window._firebaseSignOut) await window._firebaseSignOut(); } catch(e) {}
   activeUser = null;
+  activeUserEmail = null;
   localStorage.removeItem('ht_active_user');
+  localStorage.removeItem('ht_active_user_email');
   document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('usernameInput').value = '';
+  showLogin();
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
 }
 
 // ═══════════════════════════════════════════
@@ -516,7 +733,9 @@ function flash(msg) {
 function toggleTheme() {
   const root = document.documentElement;
   const isDark = root.getAttribute('data-theme') === 'dark';
-  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const newTheme = isDark ? 'light' : 'dark';
+  root.setAttribute('data-theme', newTheme);
+  localStorage.setItem('ht_theme', newTheme);
   applyThemeIcon();
 }
 function applyThemeIcon() {
@@ -638,13 +857,14 @@ function renderDashboard() {
     list.innerHTML = `<div style="text-align:center; padding: 40px 0; color:var(--text-muted)"><i data-lucide="coffee" style="width:32px;height:32px;margin-bottom:12px;opacity:0.5"></i><br>No food logged today.</div>`;
   } else {
     list.innerHTML = foodEntries.map(e => {
-      let pcPct = e.calories > 0 ? Math.round((e.protein * 4 / e.calories) * 100) : 0;
-      let pcColor = pcPct >= 30 ? 'var(--green)' : pcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
+      const pcPct = e.calories > 0 ? Math.round((e.protein * 4 / e.calories) * 100) : 0;
+      const pcColor = pcPct >= 30 ? 'var(--green)' : pcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
+      const safeName = escapeHtml(e.name);
       return `
       <div class="meal-item">
         <div class="meal-info">
           <div style="display:flex; align-items:center; gap:8px;">
-            <h4>${e.name}</h4>
+            <h4>${safeName}</h4>
             <span style="font-size:10px; padding:2px 6px; border-radius:10px; background:var(--bg-app); border:1px solid ${pcColor}; color:${pcColor}; font-weight:600;" title="Protein to Calorie ratio">${pcPct}% P:C</span>
           </div>
           <p><i data-lucide="beef" style="width:12px;height:12px"></i> ${e.protein}g Protein</p>
@@ -678,6 +898,8 @@ function addWater(amount) {
   const u = getUser();
   const t = today();
   if(!u.logs[t]) u.logs[t] = [];
+  const currentWater = u.logs[t].reduce((s, e) => s + (e.water || 0), 0);
+  if (amount < 0 && currentWater + amount < 0) return;
   u.logs[t].push({ id: Date.now()+'', name: '💧 Water ('+amount+'ml)', calories: 0, protein: 0, water: amount });
   saveCloud();
   renderDashboard();
@@ -928,12 +1150,12 @@ function renderHistory() {
     let dailyPcColor = dailyPcPct >= 30 ? 'var(--green)' : dailyPcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
 
     const foodHtml = foodEntries.map(e => {
-      let pcPct = e.calories > 0 ? Math.round((e.protein * 4 / e.calories) * 100) : 0;
-      let pcColor = pcPct >= 30 ? 'var(--green)' : pcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
+      const pcPct = e.calories > 0 ? Math.round((e.protein * 4 / e.calories) * 100) : 0;
+      const pcColor = pcPct >= 30 ? 'var(--green)' : pcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
       return `
       <div class="hist-food-row">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span>${e.name}</span>
+          <span>${escapeHtml(e.name)}</span>
           <span style="font-size:9px; padding:1px 4px; border-radius:8px; border:1px solid ${pcColor}; color:${pcColor};">${pcPct}% P:C</span>
         </div>
         <span style="color:var(--text-main); font-weight:600; font-family:'Syne'">${e.calories} <span style="font-size:10px; color:var(--text-muted); font-weight:400; font-family:'DM Sans'">kcal</span> <span style="color:var(--border)">|</span> ${e.protein}g</span>
@@ -983,7 +1205,7 @@ function renderLibrary() {
   document.getElementById('libList').innerHTML = all.map((f, i) => `
     <div class="meal-item" style="padding:16px; border: 1px solid var(--border)">
       <div class="meal-info">
-        <h4>${f.name}</h4>
+        <h4>${escapeHtml(f.name)}</h4>
         <p style="margin-top:4px"><i data-lucide="flame" style="width:12px"></i> ${f.calories} kcal <span style="margin: 0 8px; color:var(--border)">|</span> <i data-lucide="beef" style="width:12px"></i> ${f.protein}g</p>
       </div>
       <div style="display:flex; gap:8px">
@@ -1002,7 +1224,7 @@ function editCustom(idx) {
   document.getElementById('libCal').value = f.calories;
   document.getElementById('libProt').value = f.protein;
   
-  window.editingFoodIdx = idx;
+  editingFoodIdx = idx;
   document.getElementById('libSaveBtn').innerHTML = '<i data-lucide="save"></i> Update Food';
   lucide.createIcons();
   
@@ -1018,9 +1240,9 @@ function saveCustomFood() {
   if(!n||!c) return;
   if(!u.customFoods) u.customFoods = [];
   
-  if (window.editingFoodIdx !== undefined) {
-    u.customFoods[window.editingFoodIdx] = {name:n, calories:c, protein:p};
-    window.editingFoodIdx = undefined;
+  if (editingFoodIdx !== undefined) {
+    u.customFoods[editingFoodIdx] = {name:n, calories:c, protein:p};
+    editingFoodIdx = undefined;
     document.getElementById('libSaveBtn').innerHTML = '<i data-lucide="save"></i> Save to Library';
     flash("Food Updated!");
   } else {
@@ -1039,9 +1261,30 @@ function delCustom(idx) {
   saveCloud(); renderLibrary(); flash("Item Deleted");
 }
 
-window.addEventListener('resize', () => {
-  if(!document.getElementById('tab-hist').classList.contains('hidden')) {
-    renderHistory();
+window.addEventListener('resize', (() => {
+  let timer;
+  return () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if(!document.getElementById('tab-hist').classList.contains('hidden')) {
+        renderHistory();
+      }
+    }, 250);
+  };
+})());
+
+// Enter key support for auth forms
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const authScreen = document.getElementById('authScreen');
+  if (authScreen.style.display === 'none') return;
+  
+  if (!document.getElementById('authLogin').classList.contains('hidden')) {
+    loginAction();
+  } else if (!document.getElementById('authSignup').classList.contains('hidden')) {
+    signupAction();
+  } else if (!document.getElementById('authOnboard').classList.contains('hidden')) {
+    finishOnboarding();
   }
 });
 
