@@ -6,6 +6,12 @@
 <title>STRONG</title>
 <meta name="description" content="STRONG — Track your nutrition, protein, water and body goals.">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="STRONG">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<meta name="theme-color" content="#0C0C0C">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -603,54 +609,71 @@ async function initApp() {
     document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
     document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
     
-    // Try to load from Firebase first
+    // 1. Instant load from LocalStorage for speed and offline support
+    masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
+    if (masterData[activeUser]) {
+      renderAll();
+    }
+
+    // 2. Background sync from Firebase
     try {
       const snapshot = await window._firebaseGet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser));
       if (snapshot.exists()) {
-        masterData[activeUser] = snapshot.val();
+        const cloudData = snapshot.val();
+        // Simple merge/override: cloud wins on initial load if local is empty or older
+        // (In a production app, we'd compare timestamps)
+        masterData[activeUser] = cloudData;
+        localStorage.setItem('ht_master', JSON.stringify(masterData));
+        renderAll();
       } else {
         // Migration logic: Firebase is empty, check legacy cloud
-        flash("Syncing existing data...");
         const res = await fetch(LEGACY_CLOUD_URL);
         const data = await res.json();
-        
-        // Check if user has data in legacy cloud
         if (data[activeUser]) {
           masterData[activeUser] = data[activeUser];
-          saveCloud(); // Push to Firebase immediately
+          saveCloud();
           flash("Data migrated to Firebase!");
         } else if (data['Emir'] && activeUserEmail === 'emirerkan1235@gmail.com') {
-          // Special case for Emir's main account
           masterData[activeUser] = data['Emir'];
           saveCloud();
-          flash("Legacy data migrated to your account!");
-        } else {
-          // New user or no legacy data found
+        } else if (!masterData[activeUser]) {
           masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
           saveCloud();
         }
       }
     } catch(e) {
-      console.error("Firebase load failed, fallback to local", e);
-      masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
+      console.warn("Firebase sync failed (offline?), using local data.", e);
       if (!masterData[activeUser]) {
         masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
+        renderAll();
       }
     }
-    renderAll();
   }
 }
 
+let needsSync = false;
 async function saveCloud() {
   if (!activeUser) return;
+  // Always save locally first
+  localStorage.setItem('ht_master', JSON.stringify(masterData));
+  
   try {
-    localStorage.setItem('ht_master', JSON.stringify(masterData));
     const userData = masterData[activeUser];
     await window._firebaseSet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser), userData);
+    needsSync = false;
   } catch(e) {
-    console.warn('Firebase sync failed, data saved locally.', e);
+    console.warn('Firebase sync failed, data cached locally.', e);
+    needsSync = true;
   }
 }
+
+window.addEventListener('online', () => {
+  if (needsSync) {
+    console.log('Back online! Syncing data...');
+    saveCloud();
+    flash("Synchronized with cloud");
+  }
+});
 
 function getUser() {
   const u = masterData[activeUser];
@@ -1375,6 +1398,16 @@ document.addEventListener('keydown', (e) => {
 });
 
 // initApp(); // Removed: Auth listener handles init now
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW registered!');
+    }).catch(err => {
+      console.log('SW reg failed: ', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
