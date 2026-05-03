@@ -137,7 +137,7 @@
   .hist-food-row:last-child { border-bottom: none; }
 
   /* CHARTS & TOOLTIPS */
-  .chart-container { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-bottom: 10px; padding-top: 30px; border-bottom: 1px solid var(--border); margin-top: 20px;}
+  .chart-container { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-bottom: 10px; padding-top: 30px; padding-left: 45px; border-bottom: 1px solid var(--border); margin-top: 20px; position: relative; }
   .bar-wrapper { flex: 1; height: 100%; position: relative; cursor: crosshair; }
   .bar-bg { width: 100%; height: 100%; background: var(--bg-app); border-radius: 6px 6px 0 0; position: relative; overflow: hidden; transition: background 0.2s; }
   .bar-wrapper:hover .bar-bg { background: var(--border); }
@@ -376,6 +376,7 @@
       <div class="card animate-in delay-2" style="margin-bottom:24px">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
           <h3 style="font-size: 16px;"><i data-lucide="flame" style="color:var(--red); width:18px"></i> Calories (<span class="chart-days-label">14 Days</span>)</h3>
+          <span id="avgCalDisplay" style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Avg: 0 kcal</span>
         </div>
         <div id="histCalChart" class="chart-container"></div>
       </div>
@@ -383,6 +384,7 @@
       <div class="card animate-in delay-3" style="margin-bottom:24px">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
           <h3 style="font-size: 16px;"><i data-lucide="beef" style="color:var(--green); width:18px"></i> Protein (<span class="chart-days-label">14 Days</span>)</h3>
+          <span id="avgProtDisplay" style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Avg: 0g</span>
         </div>
         <div id="histProtChart" class="chart-container"></div>
       </div>
@@ -1092,6 +1094,11 @@ function renderHistory() {
   const maxProt = Math.max(...days.map(d => (u.logs[d]||[]).reduce((s,e)=>s+e.protein,0)), u.settings.protGoal);
   
   // Calorie Chart Generation
+  
+  const calData = days.map(d => (u.logs[d]||[]).reduce((s,e)=>s+e.calories,0));
+  const avgCal = calData.length > 0 ? calData.reduce((a,b)=>a+b,0)/calData.length : 0;
+  document.getElementById('avgCalDisplay').textContent = `Avg: ${Math.round(avgCal)} kcal`;
+
   const calHTML = days.map((d, i) => {
     const c = (u.logs[d]||[]).reduce((s,e)=>s+e.calories,0);
     const h = c ? (c/maxCal)*100 : 0;
@@ -1109,6 +1116,15 @@ function renderHistory() {
     `;
   }).join('');
 
+  // Y-Axis for Calories
+  let calYAxis = '';
+  const calStep = 500;
+  for (let v = 0; v <= maxCal; v += calStep) {
+    const bottom = (v / maxCal) * 100;
+    calYAxis += `<div style="position:absolute; left:0; bottom:calc(${bottom}% + 10px); width:40px; text-align:right; font-size:10px; color:var(--text-muted); font-weight:600; padding-right:8px;">${v}</div>`;
+  }
+
+
   const goalRangeLower = u.settings.calGoal * 0.9;
   const goalRangeUpper = u.settings.calGoal * 1.1;
   const lowerPct = Math.min((goalRangeLower / maxCal) * 100, 100);
@@ -1120,7 +1136,7 @@ function renderHistory() {
   </div>`;
   
   document.getElementById('histCalChart').style.position = 'relative';
-  document.getElementById('histCalChart').innerHTML = calHTML + bandHTML;
+  document.getElementById('histCalChart').innerHTML = calHTML + bandHTML + calYAxis;
 
   // Protein Chart Generation
   const protGoalRangeLower = u.settings.protGoal * 0.9;
@@ -1132,6 +1148,11 @@ function renderHistory() {
   <div style="position:absolute; bottom:10px; left:0; width:100%; height:calc(100% - 40px); pointer-events:none; z-index:0;">
       <div style="position:absolute; bottom:${pLowerPct}%; height:${pHeightPct}%; width:100%; background:var(--green); opacity:0.15; border-top:1px dashed var(--green); border-bottom:1px dashed var(--green); border-radius:4px;"></div>
   </div>`;
+
+  
+  const protData = days.map(d => (u.logs[d]||[]).filter(e=>!e.water).reduce((s,e)=>s+e.protein,0));
+  const avgProt = protData.length > 0 ? protData.reduce((a,b)=>a+b,0)/protData.length : 0;
+  document.getElementById('avgProtDisplay').textContent = `Avg: ${Math.round(avgProt)}g`;
 
   const protHTML = days.map((d, i) => {
     const entries = u.logs[d]||[];
@@ -1150,12 +1171,21 @@ function renderHistory() {
       </div>
     `;
   }).join('');
+
+  // Y-Axis for Protein
+  let protYAxis = '';
+  const protStep = 50;
+  for (let v = 0; v <= maxProt; v += protStep) {
+    const bottom = (v / maxProt) * 100;
+    protYAxis += `<div style="position:absolute; left:0; bottom:calc(${bottom}% + 10px); width:40px; text-align:right; font-size:10px; color:var(--text-muted); font-weight:600; padding-right:8px;">${v}g</div>`;
+  }
+
   document.getElementById('histProtChart').style.position = 'relative';
   document.getElementById('histProtChart').style.display = 'flex';
   document.getElementById('histProtChart').style.flexWrap = 'nowrap';
   document.getElementById('histProtChart').style.paddingBottom = '10px';
   document.getElementById('histProtChart').classList.add('chart-container');
-    document.getElementById('histProtChart').innerHTML = protHTML + pBandHTML;
+    document.getElementById('histProtChart').innerHTML = protHTML + pBandHTML + protYAxis;
 
   // Water Heatmap Generation
   document.getElementById('histWaterChart').innerHTML = days.map((d, i) => {
