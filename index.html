@@ -178,6 +178,14 @@
     .content-col { padding: 20px; padding-bottom: 90px; }
     .right-col { padding: 20px; width: 100%; border-left: none; border-top: 1px solid var(--border); padding-bottom: 90px; }
   }
+  .date-nav { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 24px; background: var(--bg-panel); padding: 10px; border-radius: 50px; border: 1px solid var(--border); width: fit-content; margin-left: auto; margin-right: auto; }
+  .btn-icon { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .btn-icon:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.1); }
+  .date-display { font-family: 'Syne'; font-weight: 700; font-size: 16px; min-width: 120px; text-align: center; }
+
+  @media (max-width: 1024px) {
+    .date-nav { width: 100%; }
+  }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -257,6 +265,12 @@
     </div>
 
     <div id="tab-dash">
+      <div class="date-nav animate-in">
+        <button class="btn-icon" onclick="changeDate(-1)"><i data-lucide="chevron-left"></i></button>
+        <div id="selectedDateDisplay" class="date-display" onclick="goToDate(today())" style="cursor:pointer" title="Go to Today">Today</div>
+        <button class="btn-icon" onclick="changeDate(1)"><i data-lucide="chevron-right"></i></button>
+      </div>
+
       <h2 class="title animate-in delay-1"><i data-lucide="activity" style="color:var(--accent)"></i> Body Overview</h2>
       
       <div class="horizontal-scroll overview-section animate-in delay-1">
@@ -446,7 +460,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCeVt_0BqN0zC9KiVDCpGlTvzqhaf5Z90s",
@@ -455,16 +470,22 @@ const firebaseConfig = {
   storageBucket: "strong-8bfb4.firebasestorage.app",
   messagingSenderId: "58639285372",
   appId: "1:58639285372:web:19f301fbfffc0d2a195df9",
-  measurementId: "G-E1SFCVXJ9P"
+  measurementId: "G-E1SFCVXJ9P",
+  databaseURL: "https://strong-8bfb4-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
 const app = initializeApp(firebaseConfig);
 getAnalytics(app);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
-// Expose Firebase auth actions to window so plain scripts can call them
-window._firebaseReady = false;
+// Expose Firebase actions and DB to window
 window._firebaseAuth = auth;
+window._firebaseDb = db;
+window._firebaseRef = ref;
+window._firebaseSet = set;
+window._firebaseGet = get;
+window._firebaseChild = child;
 
 window.googleSignInAction = async function() {
   const provider = new GoogleAuthProvider();
@@ -509,7 +530,15 @@ window.signupAction = async function() {
 };
 
 window._firebaseSignOut = () => signOut(auth);
-window._firebaseReady = true;
+
+// Listen for auth state to handle initial load
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
+  } else {
+    window.initApp(); // Run to show login screen
+  }
+});
 </script>
 
 <script>
@@ -528,12 +557,13 @@ function escapeHtml(str) {
 // ═══════════════════════════════════════════
 // CLOUD / STATE MANAGEMENT
 // ═══════════════════════════════════════════
-const CLOUD_URL = "https://script.google.com/macros/s/AKfycbyB4mhtJc72HuXtK1Lv97yhGzvhKv5cwl75J6ph6Z0kYCiOxa0PMdthaey0aG819JS2/exec";
+const LEGACY_CLOUD_URL = "https://script.google.com/macros/s/AKfycbyB4mhtJc72HuXtK1Lv97yhGzvhKv5cwl75J6ph6Z0kYCiOxa0PMdthaey0aG819JS2/exec";
 
 let activeUser = localStorage.getItem('ht_active_user');
 let activeUserEmail = localStorage.getItem('ht_active_user_email');
 let masterData = {};
 let editingFoodIdx = undefined;
+let selectedDate = today();
 
 const defaultSettings = { calGoal: 1850, protGoal: 140, weightGoal: 75, waterGoal: 3000 };
 const PRESET_FOODS = [
@@ -560,58 +590,53 @@ async function initApp() {
     const displayStr = (activeUserEmail || activeUser).split('@')[0];
     document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
     document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
-  }
-  
-  document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en', { weekday: 'short', day: '2-digit', month: 'long' });
-  
-  try {
-    const res = await fetch(CLOUD_URL);
-    const data = await res.json();
-    if (Object.keys(data).length > 0) masterData = data;
-    else masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
-  } catch(e) {
-    masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
-  }
-
-  // Data migration for legacy single-user data
-  if ((masterData.logs || localStorage.getItem('ht_logs')) && !masterData[activeUser || "Emir"]) {
-    const migratedData = {
-      logs: masterData.logs || JSON.parse(localStorage.getItem('ht_logs') || '{}'),
-      weights: masterData.weights || JSON.parse(localStorage.getItem('ht_weights') || '{}'),
-      settings: masterData.settings || {...defaultSettings},
-      customFoods: masterData.customFoods || JSON.parse(localStorage.getItem('ht_custom') || '[]')
-    };
-    masterData[activeUser || "Emir"] = migratedData;
-    delete masterData.logs; delete masterData.weights; delete masterData.settings; delete masterData.customFoods;
-    localStorage.removeItem('ht_logs'); localStorage.removeItem('ht_weights'); localStorage.removeItem('ht_settings'); localStorage.removeItem('ht_custom');
-    saveCloud();
-    flash("Old data migrated!");
-  }
-
-  // Specific migration for emirerkan1235@gmail.com
-  if (activeUserEmail === 'emirerkan1235@gmail.com' && masterData['Emir']) {
-    if (!masterData[activeUser] || !masterData[activeUser].logs || Object.keys(masterData[activeUser].logs).length === 0) {
-      masterData[activeUser] = JSON.parse(JSON.stringify(masterData['Emir']));
-      saveCloud();
-      flash("Data successfully moved to your account!");
+    
+    // Try to load from Firebase first
+    try {
+      const snapshot = await window._firebaseGet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser));
+      if (snapshot.exists()) {
+        masterData[activeUser] = snapshot.val();
+      } else {
+        // Migration logic: Firebase is empty, check legacy cloud
+        flash("Syncing existing data...");
+        const res = await fetch(LEGACY_CLOUD_URL);
+        const data = await res.json();
+        
+        // Check if user has data in legacy cloud
+        if (data[activeUser]) {
+          masterData[activeUser] = data[activeUser];
+          saveCloud(); // Push to Firebase immediately
+          flash("Data migrated to Firebase!");
+        } else if (data['Emir'] && activeUserEmail === 'emirerkan1235@gmail.com') {
+          // Special case for Emir's main account
+          masterData[activeUser] = data['Emir'];
+          saveCloud();
+          flash("Legacy data migrated to your account!");
+        } else {
+          // New user or no legacy data found
+          masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
+          saveCloud();
+        }
+      }
+    } catch(e) {
+      console.error("Firebase load failed, fallback to local", e);
+      masterData = JSON.parse(localStorage.getItem('ht_master') || '{}');
+      if (!masterData[activeUser]) {
+        masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
+      }
     }
+    renderAll();
   }
-
-  if (activeUser && !masterData[activeUser]) {
-    masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
-  } else if (activeUser && (!masterData[activeUser].customFoods || masterData[activeUser].customFoods.length === 0)) {
-    masterData[activeUser].customFoods = [...PRESET_FOODS];
-  }
-  
-  if(activeUser) renderAll();
 }
 
 async function saveCloud() {
+  if (!activeUser) return;
   try {
     localStorage.setItem('ht_master', JSON.stringify(masterData));
-    await fetch(CLOUD_URL, { method: 'POST', body: JSON.stringify(masterData) });
+    const userData = masterData[activeUser];
+    await window._firebaseSet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser), userData);
   } catch(e) {
-    console.warn('Cloud sync failed, data saved locally.', e);
+    console.warn('Firebase sync failed, data saved locally.', e);
   }
 }
 
@@ -718,6 +743,17 @@ function getProtColor(prot, goal) {
 // UTILS
 // ═══════════════════════════════════════════
 function today() { return new Date().toISOString().split('T')[0]; }
+function changeDate(delta) {
+  const d = new Date(selectedDate);
+  d.setDate(d.getDate() + delta);
+  selectedDate = d.toISOString().split('T')[0];
+  renderDashboard();
+}
+function goToDate(dateStr) {
+  selectedDate = dateStr;
+  switchTab('dash');
+  document.getElementById('mainContentScroll').scrollTo({ top: 0, behavior: 'smooth' });
+}
 function getLast(n) {
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (n - 1 - i));
@@ -751,6 +787,7 @@ function switchTab(tab) {
   });
   document.getElementById(`tab-${tab}`).classList.remove('hidden');
   document.getElementById(`nav-${tab}`).classList.add('active');
+  document.getElementById('mainContentScroll').scrollTo({ top: 0 });
 
   document.getElementById('right-dash').classList.toggle('hidden', tab === 'hist' || tab === 'set');
   document.getElementById('right-hist').classList.toggle('hidden', tab !== 'hist');
@@ -783,7 +820,12 @@ function renderAll() { switchTab('dash'); }
 
 function renderDashboard() {
   const u = getUser();
-  const t = today();
+  const t = selectedDate;
+  const isToday = t === today();
+  const dateDisplay = document.getElementById('selectedDateDisplay');
+  dateDisplay.textContent = isToday ? 'Today' : new Date(t).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+  dateDisplay.style.color = isToday ? 'var(--text-main)' : 'var(--accent)';
+  
   const entries = u.logs[t] || [];
   const cal = entries.reduce((s, e) => s + e.calories, 0);
   const prot = entries.reduce((s, e) => s + e.protein, 0);
@@ -896,7 +938,7 @@ function fillQuick(i) {
 
 function addWater(amount) {
   const u = getUser();
-  const t = today();
+  const t = selectedDate;
   if(!u.logs[t]) u.logs[t] = [];
   const currentWater = u.logs[t].reduce((s, e) => s + (e.water || 0), 0);
   if (amount < 0 && currentWater + amount < 0) return;
@@ -912,7 +954,7 @@ function addFood() {
   const prot = parseFloat(document.getElementById('foodProt').value)||0;
   if(!name || !cal) { flash("Need name and calories"); return; }
   
-  const t = today();
+  const t = selectedDate;
   if(!u.logs[t]) u.logs[t] = [];
   u.logs[t].push({ id: Date.now()+'', name, calories: cal, protein: prot });
   saveCloud();
@@ -925,7 +967,7 @@ function addFood() {
 }
 
 function delFood(id) {
-  const u = getUser(); const t = today();
+  const u = getUser(); const t = selectedDate;
   u.logs[t] = u.logs[t].filter(e => e.id !== id);
   saveCloud(); renderDashboard();
 }
@@ -933,7 +975,7 @@ function delFood(id) {
 function logWeight() {
   const w = parseFloat(document.getElementById('inputWeight').value);
   if(!w) return;
-  getUser().weights[today()] = w;
+  getUser().weights[selectedDate] = w;
   document.getElementById('inputWeight').value = '';
   saveCloud(); renderDashboard(); flash("Weight saved!");
 }
@@ -1144,7 +1186,7 @@ function renderHistory() {
     const cal = foodEntries.reduce((s,e)=>s+e.calories,0);
     const prot = foodEntries.reduce((s,e)=>s+e.protein,0);
     const w = u.weights[d];
-    if(foodEntries.length===0 && !w) return '';
+    // if(foodEntries.length===0 && !w) return ''; // REMOVED to show all days
 
     let dailyPcPct = cal > 0 ? Math.round((prot * 4 / cal) * 100) : 0;
     let dailyPcColor = dailyPcPct >= 30 ? 'var(--green)' : dailyPcPct >= 15 ? 'var(--yellow)' : 'var(--text-muted)';
@@ -1182,12 +1224,13 @@ function renderHistory() {
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:12px">
+            <button class="btn-sm" style="background:var(--bg-app); border:1px solid var(--border); color:var(--text-muted); border-radius:8px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="event.stopPropagation(); goToDate('${d}')">${(foodEntries.length > 0 || w) ? 'Edit' : 'Add Data'}</button>
             <div style="font-family:'Syne'; font-weight:700; color:var(--text-muted)">${w ? w+'kg' : ''}</div>
             <i data-lucide="chevron-down" style="width:16px; color:var(--text-muted)"></i>
           </div>
         </div>
         <div class="hist-details" id="hd-${d}">
-          ${foodHtml || '<p style="font-size:13px;color:var(--text-muted)">No food data.</p>'}
+          ${foodHtml || '<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px 0;">No data logged for this day.</p>'}
         </div>
       </div>
     `;
@@ -1288,7 +1331,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-initApp();
+// initApp(); // Removed: Auth listener handles init now
 </script>
 </body>
 </html>
