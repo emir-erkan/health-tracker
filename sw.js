@@ -1,11 +1,11 @@
-const CACHE_NAME = 'strong-v1';
+const CACHE_NAME = 'strong-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/assets/icon.svg',
-  '/assets/icon.png',
-  '/assets/wordmark.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './assets/icon.svg',
+  './assets/icon.png',
+  './assets/wordmark.png',
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap',
   'https://unpkg.com/lucide@latest'
 ];

@@ -2,7 +2,7 @@
   "name": "STRONG Nutrition & Fitness",
   "short_name": "STRONG",
   "description": "Track your nutrition, protein, water and body goals with precision.",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0C0C0C",
   "theme_color": "#ff4e00",
