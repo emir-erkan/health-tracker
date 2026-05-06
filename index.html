@@ -515,7 +515,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -531,7 +531,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 getAnalytics(app);
-const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: browserLocalPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver
+});
 const db = getDatabase(app);
 
 window._firebaseAuth = auth;
@@ -541,8 +544,7 @@ window._firebaseSet = set;
 window._firebaseGet = get;
 window._firebaseChild = child;
 
-// Force LOCAL persistence so sessions survive page refreshes and PWA restarts on all platforms
-setPersistence(auth, browserLocalPersistence).catch(e => console.warn('Persistence error:', e));
+// Persistence is now handled by initializeAuth directly
 
 window.googleSignInAction = async function() {
   const provider = new GoogleAuthProvider();
@@ -589,11 +591,7 @@ window.signupAction = async function() {
 window._firebaseSignOut = () => signOut(auth);
 
 // Single auth state listener — the only place login/logout decisions are made.
-// _authInitialized prevents repeated calls from Firebase token refreshes.
-let _authInitialized = false;
 onAuthStateChanged(auth, (user) => {
-  if (_authInitialized) return;
-  _authInitialized = true;
 
   // Firebase has resolved — hide the loading spinner
   const loadingEl = document.getElementById('authLoading');
