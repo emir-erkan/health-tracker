@@ -71,7 +71,7 @@
   .delay-3 { animation-delay: 0.15s; }
 
   /* LOGIN OVERLAY */
-  #authScreen { position: fixed; inset: 0; background: var(--bg-app); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: background-color 0.3s; }
+  #authScreen { position: fixed; inset: 0; background: var(--bg-app); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: background-color 0.3s; }
   .auth-box { background: var(--bg-panel); padding: 40px; border-radius: 24px; border: 1px solid var(--border); width: 100%; max-width: 420px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
   .auth-wordmark { height: 40px; object-fit: contain; margin: 0 auto 28px; display: block; }
   .auth-icon { width: 56px; height: 56px; margin: 0 auto 20px; display: block; }
@@ -286,14 +286,18 @@
 </div>
 
 <script>
-// Immediately show loading spinner for returning users while Firebase initialises
+// Show auth screen appropriately before Firebase resolves
 (function() {
+  var screen  = document.getElementById('authScreen');
+  var loading = document.getElementById('authLoading');
+  var login   = document.getElementById('authLogin');
   if (localStorage.getItem('ht_active_user')) {
-    var loading = document.getElementById('authLoading');
-    var login   = document.getElementById('authLogin');
+    // Returning user: show the screen with only the spinner (Firebase will hide it once confirmed)
+    if (screen)  screen.style.display  = 'flex';
     if (loading) loading.style.display = 'block';
     if (login)   login.style.display   = 'none';
   }
+  // New/logged-out user: authScreen stays hidden until onAuthStateChanged fires and shows it
 })();
 </script>
 
@@ -548,7 +552,7 @@ window._firebaseChild = child;
 
 window.googleSignInAction = async function() {
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
+  // Do NOT set prompt:'select_account' — it forces re-auth every time even when already signed in
   try {
     document.getElementById('authError').textContent = 'Opening Google sign-in…';
     await signInWithPopup(auth, provider);
@@ -609,7 +613,9 @@ onAuthStateChanged(auth, (user) => {
       window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
     }
   } else {
-    document.getElementById('authScreen').style.display = 'flex';
+    // No user — show the login screen
+    const authScreen = document.getElementById('authScreen');
+    authScreen.style.display = 'flex';
     window.showLogin();
   }
 });
