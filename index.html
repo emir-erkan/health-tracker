@@ -898,7 +898,10 @@ function switchTab(tab) {
   document.getElementById(`nav-${tab}`).classList.add('active');
   document.getElementById('mainContentScroll').scrollTo({ top: 0 });
 
-  document.getElementById('right-dash').classList.toggle('hidden', tab === 'hist' || tab === 'set');
+  // Right column: show only on dash and hist tabs
+  const rightCol = document.querySelector('.right-col');
+  if (rightCol) rightCol.classList.toggle('hidden', tab === 'lib' || tab === 'set');
+  document.getElementById('right-dash').classList.toggle('hidden', tab !== 'dash');
   document.getElementById('right-hist').classList.toggle('hidden', tab !== 'hist');
 
   if(tab === 'dash') renderDashboard();
