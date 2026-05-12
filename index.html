@@ -293,7 +293,7 @@
   // stores auth tokens in IndexedDB and needs a moment to check them
   if (screen)  screen.style.display  = 'flex';
   if (loading) loading.style.display = 'block';
-  if (login)   login.style.display   = 'none';
+  if (login)   login.classList.add('hidden');  // Use class, not inline style
 })();
 </script>
 
@@ -746,17 +746,23 @@ function getUser() {
 }
 
 function showLogin() {
-  document.getElementById('authLogin').classList.remove('hidden');
+  const loginEl = document.getElementById('authLogin');
+  loginEl.style.display = '';  // Clear inline display:none
+  loginEl.classList.remove('hidden');
   document.getElementById('authSignup').classList.add('hidden');
   document.getElementById('authOnboard').classList.add('hidden');
+  document.getElementById('authLoading').style.display = 'none';
   document.getElementById('authError').textContent = '';
   lucide.createIcons();
 }
 
 function showSignup() {
+  const signupEl = document.getElementById('authSignup');
+  signupEl.style.display = '';  // Clear inline display:none
+  signupEl.classList.remove('hidden');
   document.getElementById('authLogin').classList.add('hidden');
-  document.getElementById('authSignup').classList.remove('hidden');
   document.getElementById('authOnboard').classList.add('hidden');
+  document.getElementById('authLoading').style.display = 'none';
   document.getElementById('signupError').textContent = '';
   lucide.createIcons();
 }
@@ -777,11 +783,9 @@ function handleSuccessfulLogin(uid, email, displayName) {
   
   // Show loading spinner while fetching data from Firebase
   const authScreen = document.getElementById('authScreen');
-  const authLoading = document.getElementById('authLoading');
-  const authLogin = document.getElementById('authLogin');
   authScreen.style.display = 'flex';
-  authLoading.style.display = 'block';
-  authLogin.style.display = 'none';
+  document.getElementById('authLoading').style.display = 'block';
+  document.getElementById('authLogin').classList.add('hidden');
   document.getElementById('authSignup').classList.add('hidden');
   document.getElementById('authOnboard').classList.add('hidden');
   
