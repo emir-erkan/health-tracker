@@ -515,7 +515,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
-import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, indexedDBLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -532,7 +532,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 getAnalytics(app);
 const auth = initializeAuth(app, {
-  persistence: browserLocalPersistence,
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
   popupRedirectResolver: browserPopupRedirectResolver
 });
 const db = getDatabase(app);
@@ -546,17 +546,53 @@ window._firebaseChild = child;
 
 // Persistence is now handled by initializeAuth directly
 
+// Detect mobile/tablet to choose popup vs redirect for Google sign-in
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+}
+
 window.googleSignInAction = async function() {
   const provider = new GoogleAuthProvider();
-  // Do NOT set prompt:'select_account' — it forces re-auth every time even when already signed in
+  const errorEl = document.getElementById('authError');
   try {
-    document.getElementById('authError').textContent = 'Opening Google sign-in…';
-    await signInWithPopup(auth, provider);
+    if (isMobileDevice()) {
+      // Mobile: use redirect (popups are blocked on most mobile browsers)
+      errorEl.textContent = 'Redirecting to Google sign-in…';
+      await signInWithRedirect(auth, provider);
+    } else {
+      // Desktop: use popup
+      errorEl.textContent = 'Opening Google sign-in…';
+      await signInWithPopup(auth, provider);
+    }
   } catch (error) {
-    const msg = error.code === 'auth/popup-closed-by-user' ? '' : error.message;
-    document.getElementById('authError').textContent = msg;
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+      // Popup was blocked — fall back to redirect
+      try {
+        errorEl.textContent = 'Popup blocked, redirecting…';
+        await signInWithRedirect(auth, provider);
+      } catch (redirectError) {
+        errorEl.textContent = redirectError.message;
+      }
+    } else {
+      const msg = error.code === 'auth/popup-closed-by-user' ? '' : error.message;
+      errorEl.textContent = msg;
+    }
   }
 };
+
+// Handle redirect result when user returns from Google sign-in
+getRedirectResult(auth).then((result) => {
+  // If result is not null, onAuthStateChanged will handle the login
+  if (result) {
+    console.log('Redirect sign-in successful');
+  }
+}).catch((error) => {
+  if (error.code !== 'auth/popup-closed-by-user') {
+    const errorEl = document.getElementById('authError');
+    if (errorEl) errorEl.textContent = error.message;
+  }
+});
 
 window.loginAction = async function() {
   const email = document.getElementById('loginUser').value.trim();
@@ -587,6 +623,9 @@ window.signupAction = async function() {
 
 window._firebaseSignOut = () => signOut(auth);
 
+// Track whether a user session has already been initialized this page load
+let _sessionInitialized = false;
+
 // Single auth state listener — the only place login/logout decisions are made.
 onAuthStateChanged(auth, (user) => {
 
@@ -595,10 +634,15 @@ onAuthStateChanged(auth, (user) => {
   if (loadingEl) loadingEl.style.display = 'none';
 
   if (user) {
-    // Firebase session is valid — proceed to app
-    window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
+    if (!_sessionInitialized || activeUser !== user.uid) {
+      // First auth resolution or user changed — load data
+      _sessionInitialized = true;
+      window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
+    }
+    // Else: token refresh — user is already logged in, do nothing
   } else {
     // No user — show the login screen
+    _sessionInitialized = false;
     const authScreen = document.getElementById('authScreen');
     authScreen.style.display = 'flex';
     window.showLogin();
@@ -1402,16 +1446,23 @@ document.addEventListener('keydown', (e) => {
 
 // initApp(); // Removed: Auth listener handles init now
 
-// Unregister any existing service worker to prevent stale cache issues
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    registrations.forEach(reg => reg.unregister());
-  });
-  // Clear all caches
-  if ('caches' in window) {
-    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+// Unregister any existing service worker and clear stale caches
+(function() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      registrations.forEach(function(reg) { reg.unregister(); });
+    });
   }
-}
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      names.forEach(function(name) { caches.delete(name); });
+    });
+  }
+  // Clean up any leftover localStorage data keys from previous versions
+  ['ht_master', 'ht_active_user', 'ht_active_user_email', 'ht_last_auth'].forEach(function(key) {
+    localStorage.removeItem(key);
+  });
+})();
 </script>
 </body>
 </html>
