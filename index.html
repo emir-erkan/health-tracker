@@ -215,9 +215,7 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     border-color: var(--accent);
   }
-  /* Offline indicator pill */
-  #offlinePill { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--yellow); color: #000; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; z-index: 99998; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-  @media (min-width: 1025px) { #offlinePill { bottom: 20px; } }
+
   /* Auth loading spinner */
   @keyframes spin { to { transform: rotate(360deg); } }
   #authLoading { display: none; text-align: center; padding: 20px; }
@@ -227,7 +225,7 @@
 </head>
 <body>
 
-<div id="offlinePill">⚡ Offline — changes saved locally</div>
+
 <div id="flash"><i data-lucide="check-circle" style="width:18px;height:18px"></i> <span id="flashText">Success</span></div>
 
 
@@ -286,22 +284,20 @@
 </div>
 
 <script>
-// Show auth screen appropriately before Firebase resolves
+// Show loading spinner while Firebase resolves auth state from IndexedDB
 (function() {
   var screen  = document.getElementById('authScreen');
   var loading = document.getElementById('authLoading');
   var login   = document.getElementById('authLogin');
-  if (localStorage.getItem('ht_active_user')) {
-    // Returning user: show the screen with only the spinner (Firebase will hide it once confirmed)
-    if (screen)  screen.style.display  = 'flex';
-    if (loading) loading.style.display = 'block';
-    if (login)   login.style.display   = 'none';
-  }
-  // New/logged-out user: authScreen stays hidden until onAuthStateChanged fires and shows it
+  // Always show spinner initially — Firebase's browserLocalPersistence
+  // stores auth tokens in IndexedDB and needs a moment to check them
+  if (screen)  screen.style.display  = 'flex';
+  if (loading) loading.style.display = 'block';
+  if (login)   login.style.display   = 'none';
 })();
 </script>
 
-<div class="sidebar">>
+<div class="sidebar">
   <div class="sidebar-logo">
     <img src="assets/icon.svg" alt="STRONG" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne;font-weight:800;color:#fff;font-size:14px;\'>S</span>'">
   </div>
@@ -582,11 +578,8 @@ window.signupAction = async function() {
   if (pass.length < 6) { document.getElementById('signupError').textContent = 'Password must be at least 6 characters.'; return; }
   if (pass !== confirm) { document.getElementById('signupError').textContent = 'Passwords do not match.'; return; }
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    window.activeUser = cred.user.uid;
-    localStorage.setItem('ht_active_user', window.activeUser);
-    localStorage.setItem('ht_active_user_email', email);
-    window.showOnboarding();
+    await createUserWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged will fire and call handleSuccessfulLogin
   } catch (error) {
     document.getElementById('signupError').textContent = error.message;
   }
@@ -602,16 +595,8 @@ onAuthStateChanged(auth, (user) => {
   if (loadingEl) loadingEl.style.display = 'none';
 
   if (user) {
-    const now = Date.now();
-    const oneMonth = 30 * 24 * 60 * 60 * 1000;
-    const lastAuthTime = parseInt(localStorage.getItem('ht_last_auth') || '0', 10);
-    if (lastAuthTime && (now - lastAuthTime > oneMonth)) {
-      _authInitialized = false;
-      window.logout();
-    } else {
-      localStorage.setItem('ht_last_auth', now.toString());
-      window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
-    }
+    // Firebase session is valid — proceed to app
+    window.handleSuccessfulLogin(user.uid, user.email, user.displayName || user.email);
   } else {
     // No user — show the login screen
     const authScreen = document.getElementById('authScreen');
@@ -636,13 +621,11 @@ function escapeHtml(str) {
 
 
 // ═══════════════════════════════════════════
-// CLOUD / STATE MANAGEMENT
+// CLOUD / STATE MANAGEMENT (Online Only)
 // ═══════════════════════════════════════════
-const LEGACY_CLOUD_URL = "https://script.google.com/macros/s/AKfycbyB4mhtJc72HuXtK1Lv97yhGzvhKv5cwl75J6ph6Z0kYCiOxa0PMdthaey0aG819JS2/exec";
 
-let activeUser = localStorage.getItem('ht_active_user');
-let activeUserEmail = localStorage.getItem('ht_active_user_email');
-let lastAuth = localStorage.getItem('ht_last_auth');
+let activeUser = null;
+let activeUserEmail = null;
 let masterData = {};
 let editingFoodIdx = undefined;
 let selectedDate = today();
@@ -657,7 +640,7 @@ const PRESET_FOODS = [
   { name: "Whey Protein (1 scoop)", calories: 120, protein: 25 }
 ];
 
-// Restore theme from localStorage
+// Restore theme from localStorage (UI preference only, not data)
 (function() {
   const savedTheme = localStorage.getItem('ht_theme');
   if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
@@ -669,38 +652,18 @@ async function initApp() {
 
   if (!activeUser) return;
 
-  // 1. Load from LocalStorage first for instant results
-  const localMaster = JSON.parse(localStorage.getItem('ht_master') || '{}');
-  if (localMaster[activeUser]) {
-    masterData[activeUser] = localMaster[activeUser];
-    renderAll();
-  }
-
-  // 2. Fetch from Firebase to sync or load on new device
+  // Load from Firebase only — no local data storage
   try {
     const snapshot = await window._firebaseGet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser));
     if (snapshot.exists()) {
-      const cloudData = snapshot.val();
-      masterData[activeUser] = cloudData;
-      localStorage.setItem('ht_master', JSON.stringify(masterData));
+      masterData[activeUser] = snapshot.val();
       renderAll();
-    } else {
-      // Check legacy cloud or show onboarding
-      const res = await fetch(LEGACY_CLOUD_URL);
-      const data = await res.json();
-      if (data[activeUser]) {
-        masterData[activeUser] = data[activeUser];
-        saveCloud();
-        flash("Data synchronized!");
-      } else if (data['Emir'] && activeUserEmail === 'emirerkan1235@gmail.com') {
-        masterData[activeUser] = data['Emir'];
-        saveCloud();
-      } else if (!masterData[activeUser]) {
-        showOnboarding();
-      }
+    } else if (!masterData[activeUser]) {
+      showOnboarding();
     }
   } catch(e) {
-    console.warn("Cloud sync paused (offline).", e);
+    console.error("Failed to load data from Firebase.", e);
+    flash("Connection error — please check your internet.");
     if (!masterData[activeUser]) {
       masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
       renderAll();
@@ -708,31 +671,16 @@ async function initApp() {
   }
 }
 
-let needsSync = false;
 async function saveCloud() {
   if (!activeUser) return;
-  // Always save locally first
-  localStorage.setItem('ht_master', JSON.stringify(masterData));
-  
   try {
     const userData = masterData[activeUser];
     await window._firebaseSet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser), userData);
-    needsSync = false;
   } catch(e) {
-    console.warn('Firebase sync failed, data cached locally.', e);
-    needsSync = true;
+    console.error('Firebase save failed.', e);
+    flash("Save failed — check your connection.");
   }
 }
-
-window.addEventListener("online", () => {
-  const pill = document.getElementById("offlinePill");
-  if (pill) pill.style.display = "none";
-  if (needsSync) { saveCloud(); flash("Synchronized with cloud ☁️"); }
-});
-window.addEventListener("offline", () => {
-  const pill = document.getElementById("offlinePill");
-  if (pill) pill.style.display = "block";
-});
 
 function getUser() {
   const u = masterData[activeUser];
@@ -768,16 +716,13 @@ function showOnboarding() {
 function handleSuccessfulLogin(uid, email, displayName) {
   activeUser = uid;
   activeUserEmail = email;
-  localStorage.setItem('ht_active_user', uid);
-  localStorage.setItem('ht_active_user_email', email);
-  localStorage.setItem('ht_last_auth', Date.now().toString());
   
   document.getElementById('authScreen').style.display = 'none';
-  const displayStr = email.split('@')[0];
+  const displayStr = (email || uid).split('@')[0];
   document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
   document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
   
-  // Load data immediately
+  // Load data from Firebase
   initApp();
 }
 // Expose to module script
@@ -811,13 +756,19 @@ async function logout() {
   try { if (window._firebaseSignOut) await window._firebaseSignOut(); } catch(e) {}
   activeUser = null;
   activeUserEmail = null;
-  localStorage.removeItem('ht_active_user');
-  localStorage.removeItem('ht_active_user_email');
-  localStorage.removeItem('ht_last_auth');
+  masterData = {};
   document.getElementById('authScreen').style.display = 'flex';
   showLogin();
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
+}
+
+// Missing function that was causing crashes
+function getCalColor(cal, goal) {
+  if (cal > goal * 1.1) return 'var(--red)';
+  if (cal >= goal * 0.9 && cal <= goal * 1.1) return 'var(--green)';
+  if (cal >= goal * 0.5) return 'var(--yellow)';
+  return 'var(--text-muted)';
 }
 
 function getProtColor(prot, goal) {
@@ -1451,14 +1402,15 @@ document.addEventListener('keydown', (e) => {
 
 // initApp(); // Removed: Auth listener handles init now
 
+// Unregister any existing service worker to prevent stale cache issues
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      console.log('SW registered!');
-    }).catch(err => {
-      console.log('SW reg failed: ', err);
-    });
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(reg => reg.unregister());
   });
+  // Clear all caches
+  if ('caches' in window) {
+    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+  }
 }
 </script>
 </body>
