@@ -673,6 +673,7 @@ let activeUserEmail = null;
 let masterData = {};
 let editingFoodIdx = undefined;
 let selectedDate = today();
+let _dataLoaded = false;  // true once Firebase data has been fetched
 
 const defaultSettings = { calGoal: 1850, protGoal: 140, weightGoal: 75, waterGoal: 3000 };
 const PRESET_FOODS = [
@@ -701,18 +702,25 @@ async function initApp() {
     const snapshot = await window._firebaseGet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser));
     if (snapshot.exists()) {
       masterData[activeUser] = snapshot.val();
-      renderAll();
-    } else if (!masterData[activeUser]) {
+    } else {
+      // New user — no data in Firebase yet, show onboarding
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('authLoading').style.display = 'none';
       showOnboarding();
+      return;
     }
   } catch(e) {
     console.error("Failed to load data from Firebase.", e);
     flash("Connection error — please check your internet.");
     if (!masterData[activeUser]) {
       masterData[activeUser] = { logs: {}, weights: {}, settings: {...defaultSettings}, customFoods: [...PRESET_FOODS] };
-      renderAll();
     }
   }
+
+  // Data is now loaded — hide auth screen and render
+  _dataLoaded = true;
+  document.getElementById('authScreen').style.display = 'none';
+  renderAll();
 }
 
 async function saveCloud() {
@@ -728,7 +736,10 @@ async function saveCloud() {
 
 function getUser() {
   const u = masterData[activeUser];
-  if (!u) { logout(); return { logs:{}, weights:{}, settings:{...defaultSettings}, customFoods:[] }; }
+  if (!u) {
+    // Data not loaded yet — return safe defaults, do NOT logout
+    return { logs:{}, weights:{}, settings:{...defaultSettings}, customFoods:[] };
+  }
   if (!u.settings) u.settings = {...defaultSettings};
   if (!u.settings.waterGoal) u.settings.waterGoal = 3000;
   return u;
@@ -751,6 +762,8 @@ function showSignup() {
 }
 
 function showOnboarding() {
+  const authScreen = document.getElementById('authScreen');
+  authScreen.style.display = 'flex';
   document.getElementById('authLogin').classList.add('hidden');
   document.getElementById('authSignup').classList.add('hidden');
   document.getElementById('authOnboard').classList.remove('hidden');
@@ -760,13 +773,23 @@ function showOnboarding() {
 function handleSuccessfulLogin(uid, email, displayName) {
   activeUser = uid;
   activeUserEmail = email;
+  _dataLoaded = false;
   
-  document.getElementById('authScreen').style.display = 'none';
+  // Show loading spinner while fetching data from Firebase
+  const authScreen = document.getElementById('authScreen');
+  const authLoading = document.getElementById('authLoading');
+  const authLogin = document.getElementById('authLogin');
+  authScreen.style.display = 'flex';
+  authLoading.style.display = 'block';
+  authLogin.style.display = 'none';
+  document.getElementById('authSignup').classList.add('hidden');
+  document.getElementById('authOnboard').classList.add('hidden');
+  
   const displayStr = (email || uid).split('@')[0];
   document.getElementById('userDisplay').textContent = escapeHtml(displayStr);
   document.getElementById('userInitial').textContent = displayStr.charAt(0).toUpperCase();
   
-  // Load data from Firebase
+  // Load data from Firebase (initApp will hide auth screen when done)
   initApp();
 }
 // Expose to module script
