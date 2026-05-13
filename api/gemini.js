@@ -14,7 +14,7 @@ export default async function handler(req) {
 
   try {
     const payload = await req.json();
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
     const response = await fetch(endpoint, {
       method: 'POST',
