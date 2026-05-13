@@ -1886,6 +1886,17 @@
               style="width:16px"></i> Toggle Theme</button>
         </div>
 
+        <!-- AI Configuration -->
+        <div class="card animate-in delay-1" style="margin-bottom:20px;">
+          <h3 style="margin-bottom:16px; font-size:16px"><i data-lucide="sparkles"
+              style="width:16px; color:var(--accent)"></i> AI Configuration</h3>
+          <p class="subtitle" style="margin-bottom:8px">Gemini API Key</p>
+          <input type="password" id="settingsApiKey" placeholder="AIzaSy...">
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px; line-height:1.4">Required for AI Food Scanner and Chatbot. Stored securely on your device.</p>
+          <button class="btn btn-outline" onclick="saveApiKey()"><i data-lucide="key"
+              style="width:16px"></i> Save API Key</button>
+        </div>
+
         <!-- Daily Goals -->
         <div class="card animate-in delay-2" style="margin-bottom:20px">
           <h3 style="margin-bottom:16px; font-size: 16px;"><i data-lucide="target"
@@ -2357,6 +2368,7 @@
         document.getElementById('setWeight').value = u.settings.weightGoal;
         document.getElementById('setWater').value = u.settings.waterGoal || 3000;
         document.getElementById('setUsername').value = u.settings.displayName || (activeUserEmail || '').split('@')[0];
+        document.getElementById('settingsApiKey').value = localStorage.getItem('gemini_api_key') || '';
         // Load profile pic if saved
         const avatarImg = document.getElementById('settingsAvatarImg');
         if (u.settings.profilePic) {
@@ -2561,6 +2573,17 @@
       u.settings.weightGoal = parseFloat(document.getElementById('setWeight').value) || 75;
       u.settings.waterGoal = parseFloat(document.getElementById('setWater').value) || 3000;
       saveCloud(); flash("Settings Saved"); renderAll();
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('settingsApiKey').value.trim();
+      if (key) {
+        localStorage.setItem('gemini_api_key', key);
+        flash('API Key saved securely.');
+      } else {
+        localStorage.removeItem('gemini_api_key');
+        flash('API Key removed.');
+      }
     }
 
     // ═══════════════════════════════════════════
@@ -2937,10 +2960,13 @@
     });
 
     // ═══════════════════════════════════════════
-    // AI FOOD LOGGER — Gemini 1.5 Flash
+    // AI FOOD LOGGER & CHATBOT
     // ═══════════════════════════════════════════
-    const GEMINI_API_KEY = 'AIzaSyC5qkD9dKTKMoJ7lYsu6C-mnijih1ncjTU';
-    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    function getGeminiEndpoint() {
+      const key = localStorage.getItem('gemini_api_key');
+      if (!key) return null;
+      return `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+    }
 
     let _aiImageBase64 = null;   // base64 data (no prefix)
     let _aiImageMime = null;     // e.g. 'image/jpeg'
@@ -2991,6 +3017,13 @@
       const textInput = document.getElementById('aiTextInput').value.trim();
       const hasImage = !!_aiImageBase64;
       const hasText = !!textInput;
+
+      const endpoint = getGeminiEndpoint();
+      if (!endpoint) {
+        flash('Please configure your Gemini API Key in Settings first.');
+        switchTab('set');
+        return;
+      }
 
       if (!hasImage && !hasText) {
         flash('Type a meal description or attach a photo.');
@@ -3057,7 +3090,7 @@ Rules:
       };
 
       try {
-        const response = await fetch(GEMINI_ENDPOINT, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -3185,11 +3218,23 @@ Rules:
         startCameraStream();
         return;
       }
-      // Capture frame
+      // Capture frame and scale down to max 800px
+      const MAX_SIZE = 800;
+      let width = video.videoWidth;
+      let height = video.videoHeight;
+      if (width > MAX_SIZE || height > MAX_SIZE) {
+        if (width > height) {
+          height = Math.round((height * MAX_SIZE) / width);
+          width = MAX_SIZE;
+        } else {
+          width = Math.round((width * MAX_SIZE) / height);
+          height = MAX_SIZE;
+        }
+      }
       const canvas = document.getElementById('camCanvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(video, 0, 0, width, height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       _camCapturedBase64 = dataUrl.split(',')[1];
       _camCapturedMime = 'image/jpeg';
@@ -3230,6 +3275,13 @@ Rules:
       const hasImage = !!_camCapturedBase64;
       const textInput = document.getElementById('camTextInput').value.trim();
       const hasText = !!textInput;
+
+      const endpoint = getGeminiEndpoint();
+      if (!endpoint) {
+        flash('Please configure your Gemini API Key in Settings first.');
+        switchTab('set');
+        return;
+      }
 
       if (!hasImage && !hasText) {
         flash('Take a photo or upload one first.');
@@ -3275,7 +3327,7 @@ Rules:
       };
 
       try {
-        const response = await fetch(GEMINI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (!response.ok) throw new Error(`API error ${response.status}`);
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -3338,6 +3390,13 @@ Rules:
     let _chatHistory = [];
 
     async function sendChatMessage() {
+      const endpoint = getGeminiEndpoint();
+      if (!endpoint) {
+        flash('Please configure your Gemini API Key in Settings first.');
+        switchTab('set');
+        return;
+      }
+
       const input = document.getElementById('chatInput');
       const msg = input.value.trim();
       if (!msg) return;
@@ -3380,7 +3439,7 @@ Rules:
       ];
 
       try {
-        const response = await fetch(GEMINI_ENDPOINT, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 800 } })
