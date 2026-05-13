@@ -216,6 +216,216 @@
     border-color: var(--accent);
   }
 
+  /* ═══ AI FOOD LOGGER ═══ */
+  .ai-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ai-input-group:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .ai-input-group input[type="text"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 14px;
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+  }
+  .ai-input-group input[type="text"]:focus {
+    border: none;
+    box-shadow: none;
+  }
+  .ai-upload-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .ai-upload-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: scale(1.05);
+  }
+  .ai-upload-btn.has-image {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(34, 197, 94, 0.1);
+  }
+  .ai-upload-btn.has-image::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--bg-card);
+  }
+  .ai-preview-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    animation: slideUpFade 0.3s ease forwards;
+  }
+  .ai-preview-strip img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .ai-preview-strip .info {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ai-preview-strip .remove-img {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+  .ai-preview-strip .remove-img:hover {
+    color: var(--red);
+  }
+
+  .ai-analyze-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-analyze-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .ai-analyze-btn:hover::before {
+    opacity: 1;
+  }
+  .ai-analyze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+  .ai-analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .ai-analyze-btn:disabled:hover::before {
+    opacity: 0;
+  }
+  @keyframes aiPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .ai-analyze-btn.loading {
+    animation: aiPulse 1.2s ease-in-out infinite;
+  }
+
+  /* AI Comment Card */
+  .ai-comment-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08));
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+  .ai-comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #a78bfa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ai-comment-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-main);
+    font-weight: 400;
+  }
+  .ai-result-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .ai-result-fields input {
+    border-radius: 10px;
+  }
+  .ai-result-fields .field-row {
+    display: flex;
+    gap: 10px;
+  }
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15));
+    color: #a78bfa;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
   /* Auth loading spinner */
   @keyframes spin { to { transform: rotate(360deg); } }
   #authLoading { display: none; text-align: center; padding: 20px; }
@@ -366,15 +576,45 @@
           </div>
         </div>
         <div class="card">
-          <h3 style="margin-bottom: 16px; font-size: 16px;">Quick Add Food</h3>
-          <input type="text" id="foodName" placeholder="Food name">
-          <div style="display:flex; gap:10px; margin-bottom:12px">
-            <input type="number" id="foodCal" placeholder="Kcal">
-            <input type="number" id="foodProt" placeholder="Prot (g)">
+          <h3 style="margin-bottom: 4px; font-size: 16px;"><i data-lucide="sparkles" style="width:16px; color:#a78bfa"></i> AI Food Logger</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Describe or snap your meal — AI fills in the rest.</p>
+
+          <!-- AI Input Group -->
+          <div class="ai-input-group" id="aiInputGroup">
+            <input type="text" id="aiTextInput" placeholder="e.g. Grilled chicken salad with rice…" autocomplete="off">
+            <input type="file" id="aiImageInput" accept="image/*" capture="environment" style="display:none" onchange="handleAiImageSelect(event)">
+            <button class="ai-upload-btn" id="aiUploadBtn" onclick="document.getElementById('aiImageInput').click()" title="Attach food photo">
+              <i data-lucide="camera" style="width:18px; height:18px"></i>
+            </button>
           </div>
-          <button class="btn btn-outline" style="margin-bottom:10px" onclick="document.getElementById('presets').classList.toggle('hidden')"><i data-lucide="list" style="width:16px"></i> Library Presets</button>
-          <div id="presets" class="hidden" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; max-height:150px; overflow-y:auto; padding: 4px;"></div>
-          <button class="btn" onclick="addFood()"><i data-lucide="plus" style="width:18px"></i> Add to Meal Plan</button>
+
+          <!-- Image Preview Strip -->
+          <div id="aiPreviewStrip" class="ai-preview-strip" style="display:none"></div>
+
+          <!-- Analyze Button -->
+          <button class="ai-analyze-btn" id="aiAnalyzeBtn" onclick="analyzeWithAI()">
+            <i data-lucide="sparkles" style="width:16px"></i> Analyze with AI
+          </button>
+
+          <!-- AI Comment Display -->
+          <div id="aiCommentCard" class="ai-comment-card" style="display:none; margin-top:14px;"></div>
+
+          <!-- Editable Result Fields (hidden until AI populates) -->
+          <div id="aiResultFields" class="ai-result-fields" style="display:none; margin-top:2px;">
+            <input type="text" id="foodName" placeholder="Food name">
+            <div class="field-row">
+              <input type="number" id="foodCal" placeholder="Kcal">
+              <input type="number" id="foodProt" placeholder="Prot (g)">
+            </div>
+          </div>
+
+          <!-- Manual expand & presets -->
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1; font-size:13px;" onclick="toggleManualEntry()"><i data-lucide="pencil" style="width:14px"></i> Manual</button>
+            <button class="btn btn-outline" style="flex:1; font-size:13px;" onclick="document.getElementById('presets').classList.toggle('hidden')"><i data-lucide="list" style="width:14px"></i> Presets</button>
+          </div>
+          <div id="presets" class="hidden" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; margin-bottom:12px; max-height:150px; overflow-y:auto; padding: 4px;"></div>
+          <button class="btn" style="margin-top:10px" onclick="addFood()"><i data-lucide="plus" style="width:18px"></i> Add to Meal Plan</button>
         </div>
         <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; align-items:center; min-width:180px;">
           <h3 style="margin-bottom: 12px; font-size: 16px;">Water Tracking</h3>
@@ -1047,6 +1287,15 @@ function addFood() {
   document.getElementById('foodProt').value = '';
   renderDashboard();
   flash("Food added!");
+
+  // Clean up AI state
+  if (typeof clearAiImage === 'function') clearAiImage();
+  const aiText = document.getElementById('aiTextInput');
+  if (aiText) aiText.value = '';
+  const aiComment = document.getElementById('aiCommentCard');
+  if (aiComment) aiComment.style.display = 'none';
+  const aiFields = document.getElementById('aiResultFields');
+  if (aiFields) aiFields.style.display = 'none';
 }
 
 function delFood(id) {
@@ -1444,6 +1693,190 @@ document.addEventListener('keydown', (e) => {
     finishOnboarding();
   }
 });
+
+// ═══════════════════════════════════════════
+// AI FOOD LOGGER — Gemini 1.5 Flash
+// ═══════════════════════════════════════════
+const GEMINI_API_KEY = 'AIzaSyA0lJ8ix37wqpJkjgm2nQquC1kyqkThtRo';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+let _aiImageBase64 = null;   // base64 data (no prefix)
+let _aiImageMime = null;     // e.g. 'image/jpeg'
+let _aiImageName = null;     // filename for display
+
+function handleAiImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  _aiImageName = file.name;
+  _aiImageMime = file.type || 'image/jpeg';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;           // data:image/jpeg;base64,xxxxx
+    _aiImageBase64 = dataUrl.split(',')[1];    // strip the prefix
+
+    // Show preview strip
+    const strip = document.getElementById('aiPreviewStrip');
+    strip.style.display = 'flex';
+    strip.innerHTML = `
+      <img src="${dataUrl}" alt="preview">
+      <span class="info">${escapeHtml(_aiImageName)}</span>
+      <button class="remove-img" onclick="clearAiImage()" title="Remove image"><i data-lucide="x" style="width:16px"></i></button>
+    `;
+    // Toggle button state
+    document.getElementById('aiUploadBtn').classList.add('has-image');
+    lucide.createIcons();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAiImage() {
+  _aiImageBase64 = null;
+  _aiImageMime = null;
+  _aiImageName = null;
+  document.getElementById('aiImageInput').value = '';
+  document.getElementById('aiPreviewStrip').style.display = 'none';
+  document.getElementById('aiUploadBtn').classList.remove('has-image');
+}
+
+function toggleManualEntry() {
+  const fields = document.getElementById('aiResultFields');
+  const isHidden = fields.style.display === 'none';
+  fields.style.display = isHidden ? 'flex' : 'none';
+}
+
+async function analyzeWithAI() {
+  const textInput = document.getElementById('aiTextInput').value.trim();
+  const hasImage = !!_aiImageBase64;
+  const hasText = !!textInput;
+
+  if (!hasImage && !hasText) {
+    flash('Type a meal description or attach a photo.');
+    return;
+  }
+
+  const btn = document.getElementById('aiAnalyzeBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<i data-lucide="loader" style="width:16px"></i> Analyzing…';
+  lucide.createIcons();
+
+  // Build the system prompt
+  const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. You must also provide a short, helpful text comment—this could be feedback on the choice, a note on portion size, or a tip for hitting macro goals.
+
+You MUST return ONLY valid JSON matching this exact schema, with no other text or markdown:
+{"name": "String", "calories": Number, "proteins": Number, "ai_comment": "String"}
+
+Rules:
+- "name" should be a concise, readable food name.
+- "calories" is total estimated kcal as an integer.
+- "proteins" is total estimated protein in grams as an integer.
+- "ai_comment" should be 1-2 sentences of helpful nutritional feedback.
+- Do NOT wrap the JSON in code fences or backticks.`;
+
+  // Build the user message
+  let userText = '';
+  if (hasText && hasImage) {
+    userText = `Here is a photo of my meal along with a description: "${textInput}". Please analyze it.`;
+  } else if (hasText) {
+    userText = `I ate the following: "${textInput}". Please analyze this meal.`;
+  } else {
+    userText = 'Please analyze this food photo and identify what it is, estimate calories and protein.';
+  }
+
+  // Build parts array
+  const parts = [{ text: systemPrompt + '\n\n' + userText }];
+  if (hasImage) {
+    parts.push({
+      inline_data: {
+        mime_type: _aiImageMime,
+        data: _aiImageBase64
+      }
+    });
+  }
+
+  const payload = {
+    contents: [{ parts }],
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 300
+    }
+  };
+
+  try {
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`API error ${response.status}: ${errBody}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!rawText) throw new Error('Empty response from AI');
+
+    // Parse JSON — strip possible markdown fences
+    const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const result = JSON.parse(cleaned);
+
+    // Validate required fields
+    if (!result.name || result.calories === undefined || result.proteins === undefined) {
+      throw new Error('AI returned incomplete data');
+    }
+
+    // Auto-populate fields
+    document.getElementById('foodName').value = result.name;
+    document.getElementById('foodCal').value = Math.round(result.calories);
+    document.getElementById('foodProt').value = Math.round(result.proteins);
+
+    // Show the result fields
+    document.getElementById('aiResultFields').style.display = 'flex';
+
+    // Show AI comment card
+    const commentCard = document.getElementById('aiCommentCard');
+    commentCard.style.display = 'block';
+    commentCard.innerHTML = `
+      <div class="ai-comment-header">
+        <i data-lucide="sparkles" style="width:14px; height:14px"></i>
+        AI Nutritionist
+        <span class="ai-badge">Gemini Flash</span>
+      </div>
+      <div class="ai-comment-text">${escapeHtml(result.ai_comment || 'Analysis complete.')}</div>
+    `;
+
+    flash('AI analysis complete!');
+    lucide.createIcons();
+
+  } catch (err) {
+    console.error('AI Analysis Error:', err);
+    flash('AI analysis failed — try again.');
+
+    // Show fields for manual entry as fallback
+    document.getElementById('aiResultFields').style.display = 'flex';
+    const commentCard = document.getElementById('aiCommentCard');
+    commentCard.style.display = 'block';
+    commentCard.innerHTML = `
+      <div class="ai-comment-header" style="color:var(--red)">
+        <i data-lucide="alert-triangle" style="width:14px; height:14px"></i>
+        Analysis Failed
+      </div>
+      <div class="ai-comment-text" style="color:var(--text-muted)">Could not analyze your input. Please enter the details manually or try again.</div>
+    `;
+    lucide.createIcons();
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = '<i data-lucide="sparkles" style="width:16px"></i> Analyze with AI';
+    lucide.createIcons();
+  }
+}
+
+
 
 // initApp(); // Removed: Auth listener handles init now
 
