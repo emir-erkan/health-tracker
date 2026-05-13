@@ -3038,11 +3038,21 @@ Rules:
       }
 
       const payload = {
-        contents: [{ parts }],
+        contents: [{ role: 'user', parts }],
         generationConfig: {
           temperature: 0.3,
           maxOutputTokens: 300,
-          responseMimeType: 'application/json'
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              name: { type: 'STRING' },
+              calories: { type: 'NUMBER' },
+              proteins: { type: 'NUMBER' },
+              ai_comment: { type: 'STRING' }
+            },
+            required: ['name', 'calories', 'proteins', 'ai_comment']
+          }
         }
       };
 
@@ -3246,8 +3256,22 @@ Rules:
       }
 
       const payload = {
-        contents: [{ parts }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 300, responseMimeType: 'application/json' }
+        contents: [{ role: 'user', parts }],
+        generationConfig: { 
+          temperature: 0.3, 
+          maxOutputTokens: 300, 
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              name: { type: 'STRING' },
+              calories: { type: 'NUMBER' },
+              proteins: { type: 'NUMBER' },
+              ai_comment: { type: 'STRING' }
+            },
+            required: ['name', 'calories', 'proteins', 'ai_comment']
+          }
+        }
       };
 
       try {
@@ -3334,7 +3358,20 @@ Rules:
       lucide.createIcons();
       container.scrollTop = container.scrollHeight;
 
-      const systemInstruction = `You are STRONG AI, an expert, friendly, and supportive nutritionist assistant inside a fitness and nutrition tracking app called STRONG. The user's current daily goals are: ${getUser().settings.calGoal} kcal calories, ${getUser().settings.protGoal}g protein, ${getUser().settings.waterGoal || 3000}ml water. Answer questions about nutrition, meal planning, macros, and fitness. Be concise but helpful. Use emoji sparingly.`;
+      const u = getUser();
+      const recentDays = getLast(7);
+      let historyText = "User's last 7 days of logs:\\n";
+      recentDays.forEach(d => {
+        const entries = u.logs[d] || [];
+        const cal = entries.reduce((s,e) => s + (e.calories || 0), 0);
+        const prot = entries.reduce((s,e) => s + (e.protein || 0), 0);
+        const w = u.weights[d] ? `${u.weights[d]}kg` : 'No weight log';
+        if (entries.length > 0 || w !== 'No weight log') {
+          historyText += `- ${d}: ${cal} kcal, ${prot}g protein, Weight: ${w}\\n`;
+        }
+      });
+
+      const systemInstruction = `You are STRONG AI, an expert, friendly, and supportive nutritionist assistant inside a fitness and nutrition tracking app called STRONG. The user's current daily goals are: ${u.settings.calGoal} kcal calories, ${u.settings.protGoal}g protein, ${u.settings.waterGoal || 3000}ml water.\\n\\n${historyText}\\nAnswer questions about nutrition, meal planning, macros, and fitness. Be concise but helpful. Use emoji sparingly.`;
 
       const contents = [
         { role: 'user', parts: [{ text: systemInstruction }] },
