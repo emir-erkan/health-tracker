@@ -2275,10 +2275,10 @@
 
     // Missing function that was causing crashes
     function getCalColor(cal, goal) {
+      if (cal === 0) return 'var(--text-muted)';
       if (cal > goal * 1.1) return 'var(--red)';
       if (cal >= goal * 0.9 && cal <= goal * 1.1) return 'var(--green)';
-      if (cal >= goal * 0.5) return 'var(--yellow)';
-      return 'var(--text-muted)';
+      return 'var(--yellow)';
     }
 
     function getProtColor(prot, goal) {
