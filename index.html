@@ -2964,8 +2964,10 @@
     // ═══════════════════════════════════════════
     function getGeminiEndpoint() {
       const key = localStorage.getItem('gemini_api_key');
-      if (!key) return null;
-      return `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+      if (key) {
+        return `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+      }
+      return '/api/gemini';
     }
 
     let _aiImageBase64 = null;   // base64 data (no prefix)
@@ -3019,11 +3021,6 @@
       const hasText = !!textInput;
 
       const endpoint = getGeminiEndpoint();
-      if (!endpoint) {
-        flash('Please configure your Gemini API Key in Settings first.');
-        switchTab('set');
-        return;
-      }
 
       if (!hasImage && !hasText) {
         flash('Type a meal description or attach a photo.');
@@ -3277,11 +3274,6 @@ Rules:
       const hasText = !!textInput;
 
       const endpoint = getGeminiEndpoint();
-      if (!endpoint) {
-        flash('Please configure your Gemini API Key in Settings first.');
-        switchTab('set');
-        return;
-      }
 
       if (!hasImage && !hasText) {
         flash('Take a photo or upload one first.');
@@ -3391,11 +3383,6 @@ Rules:
 
     async function sendChatMessage() {
       const endpoint = getGeminiEndpoint();
-      if (!endpoint) {
-        flash('Please configure your Gemini API Key in Settings first.');
-        switchTab('set');
-        return;
-      }
 
       const input = document.getElementById('chatInput');
       const msg = input.value.trim();
