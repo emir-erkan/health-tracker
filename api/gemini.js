@@ -1,18 +1,21 @@
-export default async function handler(req, res) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Server AI Key not configured.' });
+    return new Response(JSON.stringify({ error: 'Server AI Key not configured.' }), { status: 500 });
   }
 
-  // Forward the exact payload to Google Gemini API
-  const payload = req.body;
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
-
   try {
+    const payload = await req.json();
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -21,12 +24,12 @@ export default async function handler(req, res) {
     
     if (!response.ok) {
         const text = await response.text();
-        return res.status(response.status).json({ error: text });
+        return new Response(JSON.stringify({ error: text }), { status: response.status });
     }
 
     const data = await response.json();
-    return res.status(200).json(data);
+    return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }

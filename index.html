@@ -3186,8 +3186,8 @@ Rules:
       }
       // Capture frame and scale down to max 800px
       const MAX_SIZE = 800;
-      let width = video.videoWidth;
-      let height = video.videoHeight;
+      let width = video.videoWidth || video.clientWidth || 400;
+      let height = video.videoHeight || video.clientHeight || 400;
       if (width > MAX_SIZE || height > MAX_SIZE) {
         if (width > height) {
           height = Math.round((height * MAX_SIZE) / width);
