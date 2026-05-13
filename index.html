@@ -2945,18 +2945,43 @@
     let _aiImageMime = null;     // e.g. 'image/jpeg'
     let _aiImageName = null;     // filename for display
 
+    function resizeImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const MAX_SIZE = 800;
+          let width = img.width || 400;
+          let height = img.height || 400;
+          if (width > MAX_SIZE || height > MAX_SIZE) {
+            if (width > height) {
+              height = Math.round((height * MAX_SIZE) / width);
+              width = MAX_SIZE;
+            } else {
+              width = Math.round((width * MAX_SIZE) / height);
+              height = MAX_SIZE;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          callback(dataUrl);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     function handleAiImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
       _aiImageName = file.name;
-      _aiImageMime = file.type || 'image/jpeg';
+      _aiImageMime = 'image/jpeg';
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const dataUrl = e.target.result;           // data:image/jpeg;base64,xxxxx
-        _aiImageBase64 = dataUrl.split(',')[1];    // strip the prefix
-
-        // Show preview strip
+      resizeImage(file, function(dataUrl) {
+        _aiImageBase64 = dataUrl.split(',')[1];
         const strip = document.getElementById('aiPreviewStrip');
         strip.style.display = 'flex';
         strip.innerHTML = `
@@ -2964,11 +2989,9 @@
       <span class="info">${escapeHtml(_aiImageName)}</span>
       <button class="remove-img" onclick="clearAiImage()" title="Remove image"><i data-lucide="x" style="width:16px"></i></button>
     `;
-        // Toggle button state
         document.getElementById('aiUploadBtn').classList.add('has-image');
         lucide.createIcons();
-      };
-      reader.readAsDataURL(file);
+      });
     }
 
     function clearAiImage() {
@@ -3223,18 +3246,15 @@ Rules:
     function handleGalleryForCam(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const dataUrl = e.target.result;
+      resizeImage(file, function(dataUrl) {
         _camCapturedBase64 = dataUrl.split(',')[1];
-        _camCapturedMime = file.type || 'image/jpeg';
+        _camCapturedMime = 'image/jpeg';
         stopCameraStream();
         document.getElementById('camPreviewImg').src = dataUrl;
         document.getElementById('camPreviewImg').style.display = 'block';
         document.getElementById('camPlaceholder').style.display = 'none';
         document.getElementById('camVideo').style.display = 'none';
-      };
-      reader.readAsDataURL(file);
+      });
     }
 
     async function analyzeFromCamera() {
