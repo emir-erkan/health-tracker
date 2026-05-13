@@ -3026,16 +3026,18 @@
       lucide.createIcons();
 
       // Build the system prompt
-      const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. You must also provide a short, helpful text comment—this could be feedback on the choice, a note on portion size, or a tip for hitting macro goals.
+      const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. 
+      
+You must provide a helpful text comment. In this comment, explicitly state WHAT YOU SEE in the image (e.g., "I see a medium grilled chicken breast and half a cup of white rice"). This allows the user to verify your analysis and correct it if you missed something.
 
 You MUST return ONLY valid JSON matching this exact schema, with no other text or markdown:
 {"name": "String", "calories": Number, "proteins": Number, "ai_comment": "String"}
 
 Rules:
-- "name" should be a concise, readable food name.
+- "name" MUST be extremely short and concise (1-5 words maximum).
 - "calories" is total estimated kcal as an integer.
 - "proteins" is total estimated protein in grams as an integer.
-- "ai_comment" should be 1-2 sentences of helpful nutritional feedback.
+- "ai_comment" should be 2-3 sentences. First, state specifically what you see. Second, provide helpful nutritional feedback.
 - Do NOT wrap the JSON in code fences or backticks.`;
 
       // Build the user message
@@ -3274,7 +3276,16 @@ Rules:
       document.getElementById('camScanLine').style.display = hasImage ? 'block' : 'none';
       lucide.createIcons();
 
-      const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. You must also provide a short, helpful text comment—this could be feedback on the choice, a note on portion size, or a tip for hitting macro goals.\n\nYou MUST return ONLY valid JSON matching this exact schema:\n{"name": "String", "calories": Number, "proteins": Number, "ai_comment": "String"}`;
+      const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. 
+
+In your comment, explicitly state WHAT YOU SEE in the image (e.g., "I see a medium grilled chicken breast and half a cup of white rice") so the user can verify.
+
+You MUST return ONLY valid JSON matching this exact schema:
+{"name": "String", "calories": Number, "proteins": Number, "ai_comment": "String"}
+
+Rules:
+- "name" MUST be extremely short (1-5 words maximum).
+- "ai_comment" should first state exactly what you see, followed by brief feedback.`;
 
       let userText = '';
       if (hasText && hasImage) userText = `Here is a photo of my meal along with a description: "${textInput}". Please analyze it.`;
