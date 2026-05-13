@@ -87,7 +87,6 @@
   .nav-item { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; }
   .nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 8px 20px var(--accent-glow); transform: scale(1.05); }
   .nav-item:hover:not(.active) { background: var(--bg-card); color: var(--text-main); transform: scale(1.05); }
-  .logout-btn { margin-top: auto; }
 
   .main-wrapper { flex: 1; display: flex; overflow: hidden; }
   
@@ -182,10 +181,9 @@
     .horizontal-scroll:not(.overview-section):not(.activity-section) > .card { flex: 0 0 85%; scroll-snap-align: center; }
 
     /* Fixed Bottom Navigation Bar for Mobile */
-    .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; align-items: center; padding: 0 10px; border-right: none; border-top: 1px solid var(--border); z-index: 1000; background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 66px; flex-direction: row; justify-content: space-around; align-items: center; padding: 0 6px; border-right: none; border-top: 1px solid var(--border); z-index: 1000; background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 0; }
     .sidebar-logo { display: none; }
-    .nav-item { width: 44px; height: 44px; flex-shrink: 0; }
-    .logout-btn { margin-top: 0; }
+    .nav-item { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; }
     
     .content-col { padding: 20px; padding-bottom: 20px; }
     .right-col { padding: 20px; width: 100%; border-left: none; border-top: 1px solid var(--border); padding-bottom: 90px; }
@@ -426,6 +424,111 @@
     letter-spacing: 0.3px;
   }
 
+  /* ═══ CAMERA UI ═══ */
+  .cam-container { max-width: 500px; margin: 0 auto; }
+  .cam-header { text-align:center; margin-bottom:16px; }
+  .cam-viewfinder {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    max-height: 420px;
+    background: #000;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cam-placeholder {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: absolute; inset: 0;
+  }
+  .cam-bracket {
+    position: absolute; width: 32px; height: 32px; border-color: var(--accent); border-style: solid; border-width: 0; z-index: 5;
+  }
+  .cam-bracket.tl { top: 16px; left: 16px; border-top-width: 3px; border-left-width: 3px; border-radius: 8px 0 0 0; }
+  .cam-bracket.tr { top: 16px; right: 16px; border-top-width: 3px; border-right-width: 3px; border-radius: 0 8px 0 0; }
+  .cam-bracket.bl { bottom: 16px; left: 16px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 8px; }
+  .cam-bracket.br { bottom: 16px; right: 16px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 8px 0; }
+  @keyframes scanMove { 0%,100% { top: 15%; } 50% { top: 80%; } }
+  .cam-scan-line {
+    position: absolute; left: 20px; right: 20px; height: 2px; z-index: 4;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    animation: scanMove 2.5s ease-in-out infinite;
+  }
+  .cam-controls {
+    display: flex; align-items: center; justify-content: center; gap: 28px; margin-top: 20px; margin-bottom: 8px;
+  }
+  .cam-ctrl-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 600; padding: 8px;
+    transition: color 0.2s;
+  }
+  .cam-ctrl-btn:hover { color: var(--accent); }
+  .cam-shutter {
+    width: 68px; height: 68px; border-radius: 50%; border: 4px solid var(--accent);
+    background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s; padding: 0;
+  }
+  .cam-shutter:hover { transform: scale(1.08); box-shadow: 0 0 20px var(--accent-glow); }
+  .cam-shutter:active { transform: scale(0.92); }
+  .cam-shutter-inner {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--accent);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .cam-shutter.recording .cam-shutter-inner {
+    border-radius: 8px; width: 28px; height: 28px; background: var(--red);
+  }
+
+  /* ═══ CHATBOT UI ═══ */
+  .chat-messages {
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 300px; max-height: calc(100vh - 300px); overflow-y: auto;
+    padding: 8px 0 16px; margin-bottom: 16px;
+  }
+  .chat-bubble {
+    display: flex; gap: 10px; max-width: 85%; animation: slideUpFade 0.3s ease forwards;
+  }
+  .chat-bubble.ai { align-self: flex-start; }
+  .chat-bubble.user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff;
+  }
+  .chat-bubble.user .chat-avatar { background: var(--accent); }
+  .chat-text {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px;
+    font-size: 14px; line-height: 1.6; color: var(--text-main);
+  }
+  .chat-bubble.user .chat-text { background: var(--accent); color: #fff; border-color: transparent; }
+  .chat-input-row {
+    display: flex; gap: 8px; align-items: center; padding-bottom: 10px;
+    position: sticky; bottom: 0; background: var(--bg-app);
+  }
+  @media (max-width: 1024px) {
+    .chat-input-row { padding-bottom: 20px; }
+    .chat-messages { max-height: calc(100vh - 320px); }
+  }
+
+  /* ═══ SETTINGS AVATAR ═══ */
+  .settings-avatar {
+    width: 64px; height: 64px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne'; font-weight: 800; font-size: 24px; color: #fff;
+    cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0;
+    border: 3px solid var(--border); transition: border-color 0.2s;
+  }
+  .settings-avatar:hover { border-color: var(--accent); }
+  .settings-avatar-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .settings-avatar:hover .settings-avatar-overlay { opacity: 1; }
+
   /* Auth loading spinner */
   @keyframes spin { to { transform: rotate(360deg); } }
   #authLoading { display: none; text-align: center; padding: 20px; }
@@ -512,10 +615,10 @@
     <img src="assets/icon.svg" alt="STRONG" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-family:Syne;font-weight:800;color:#fff;font-size:14px;\'>S</span>'">
   </div>
   <button class="nav-item active" onclick="switchTab('dash')" id="nav-dash" title="Dashboard"><i data-lucide="layout-dashboard"></i></button>
-  <button class="nav-item" onclick="switchTab('hist')" id="nav-hist" title="History"><i data-lucide="bar-chart-2"></i></button>
-  <button class="nav-item" onclick="switchTab('lib')" id="nav-lib" title="Library"><i data-lucide="book-open"></i></button>
+  <button class="nav-item" onclick="switchTab('hist')" id="nav-hist" title="Analytics"><i data-lucide="bar-chart-2"></i></button>
+  <button class="nav-item" onclick="switchTab('cam')" id="nav-cam" title="AI Camera" style="position:relative"><i data-lucide="scan-line"></i></button>
+  <button class="nav-item" onclick="switchTab('chat')" id="nav-chat" title="AI Chatbot"><i data-lucide="message-circle"></i></button>
   <button class="nav-item" onclick="switchTab('set')" id="nav-set" title="Settings"><i data-lucide="settings"></i></button>
-  <div style="flex:1; display:none;"></div> <button class="nav-item logout-btn" onclick="logout()" title="Logout"><i data-lucide="log-out"></i></button>
 </div>
 
 <div class="main-wrapper">
@@ -681,25 +784,126 @@
       </div>
     </div>
 
-    <div id="tab-lib" class="hidden">
-      <h2 class="title"><i data-lucide="book-bookmark" style="color:var(--accent)"></i> Food Library</h2>
-      <div class="card animate-in delay-1" style="margin-bottom:24px">
-        <h3 style="margin-bottom: 16px; font-size: 16px;">Save Custom Food</h3>
-        <input type="text" id="libName" placeholder="Food name">
-        <div style="display:flex; gap:10px; margin-bottom:12px">
-          <input type="number" id="libCal" placeholder="Kcal">
-          <input type="number" id="libProt" placeholder="Prot (g)">
+    <!-- ═══ AI CAMERA TAB ═══ -->
+    <div id="tab-cam" class="hidden">
+      <div class="cam-container animate-in">
+        <div class="cam-header">
+          <h2 class="title" style="margin-bottom:0"><i data-lucide="scan-line" style="color:#a78bfa"></i> AI Scanner</h2>
+          <p class="subtitle" style="margin-bottom:0">Point at food or upload a photo</p>
         </div>
-        <button class="btn" id="libSaveBtn" onclick="saveCustomFood()"><i data-lucide="save"></i> Save to Library</button>
+
+        <!-- Camera Viewfinder -->
+        <div class="cam-viewfinder" id="camViewfinder">
+          <video id="camVideo" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; border-radius:20px; display:none;"></video>
+          <canvas id="camCanvas" style="display:none;"></canvas>
+          <img id="camPreviewImg" style="width:100%; height:100%; object-fit:cover; border-radius:20px; display:none;">
+          <div id="camPlaceholder" class="cam-placeholder">
+            <i data-lucide="camera" style="width:48px; height:48px; color:var(--text-muted); opacity:0.4"></i>
+            <p style="color:var(--text-muted); margin-top:12px; font-size:13px">Tap a button below to start</p>
+          </div>
+          <!-- Scanning overlay -->
+          <div id="camScanLine" class="cam-scan-line" style="display:none;"></div>
+          <!-- Corner brackets -->
+          <div class="cam-bracket tl"></div>
+          <div class="cam-bracket tr"></div>
+          <div class="cam-bracket bl"></div>
+          <div class="cam-bracket br"></div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="cam-controls">
+          <button class="cam-ctrl-btn" onclick="openGalleryForCam()" id="camGalleryBtn">
+            <i data-lucide="image" style="width:22px; height:22px"></i>
+            <span>Gallery</span>
+          </button>
+          <button class="cam-shutter" onclick="captureOrToggleCamera()" id="camShutterBtn" title="Take Photo">
+            <div class="cam-shutter-inner"></div>
+          </button>
+          <button class="cam-ctrl-btn" onclick="switchCameraFacing()" id="camFlipBtn">
+            <i data-lucide="switch-camera" style="width:22px; height:22px"></i>
+            <span>Flip</span>
+          </button>
+        </div>
+        <input type="file" id="camGalleryInput" accept="image/*" style="display:none" onchange="handleGalleryForCam(event)">
+
+        <!-- Text Input for Camera tab -->
+        <div class="ai-input-group" id="camTextGroup" style="margin-top:16px;">
+          <input type="text" id="camTextInput" placeholder="Add description (optional)…" autocomplete="off">
+        </div>
+
+        <!-- Analyze button for camera -->
+        <button class="ai-analyze-btn" id="camAnalyzeBtn" onclick="analyzeFromCamera()" style="margin-top:8px;">
+          <i data-lucide="sparkles" style="width:16px"></i> Analyze with AI
+        </button>
+
+        <!-- AI Comment from camera -->
+        <div id="camCommentCard" class="ai-comment-card" style="display:none; margin-top:14px;"></div>
+
+        <!-- Result fields from camera -->
+        <div id="camResultFields" class="ai-result-fields" style="display:none; margin-top:8px;">
+          <input type="text" id="camFoodName" placeholder="Food name">
+          <div class="field-row">
+            <input type="number" id="camFoodCal" placeholder="Kcal">
+            <input type="number" id="camFoodProt" placeholder="Prot (g)">
+          </div>
+          <button class="btn" style="margin-top:8px" onclick="addFoodFromCam()"><i data-lucide="plus" style="width:18px"></i> Add to Meal Plan</button>
+        </div>
       </div>
-      <h3 style="margin-bottom: 16px; font-size: 16px;" class="animate-in delay-2">Your Saved Foods</h3>
-      <div id="libList" class="animate-in delay-2"></div>
     </div>
 
+    <!-- ═══ AI CHATBOT TAB ═══ -->
+    <div id="tab-chat" class="hidden">
+      <h2 class="title animate-in"><i data-lucide="message-circle" style="color:#a78bfa"></i> AI Nutritionist</h2>
+      <p class="subtitle animate-in delay-1">Ask anything about nutrition, meal planning, or macro targets.</p>
+
+      <div id="chatMessages" class="chat-messages animate-in delay-1">
+        <div class="chat-bubble ai">
+          <div class="chat-avatar"><i data-lucide="sparkles" style="width:14px;height:14px"></i></div>
+          <div class="chat-text">Hi! I'm your AI nutritionist. Ask me anything — meal ideas, calorie estimates, macro breakdowns, or tips for your goals. 💪</div>
+        </div>
+      </div>
+
+      <div class="chat-input-row animate-in delay-2">
+        <div class="ai-input-group" style="margin-bottom:0; flex:1">
+          <input type="text" id="chatInput" placeholder="e.g. What's a high-protein breakfast under 400 kcal?" autocomplete="off" onkeydown="if(event.key==='Enter')sendChatMessage()">
+        </div>
+        <button class="ai-analyze-btn" style="width:50px; flex-shrink:0; border-radius:12px;" onclick="sendChatMessage()" id="chatSendBtn">
+          <i data-lucide="send" style="width:18px"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS TAB ═══ -->
     <div id="tab-set" class="hidden">
-      <h2 class="title"><i data-lucide="sliders" style="color:var(--accent)"></i> Settings</h2>
-      <div class="card animate-in delay-1">
-        <h3 style="margin-bottom:16px; font-size: 16px;">Daily Goals</h3>
+      <h2 class="title animate-in"><i data-lucide="settings" style="color:var(--accent)"></i> Settings</h2>
+
+      <!-- Profile Section -->
+      <div class="card animate-in delay-1" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:16px; font-size:16px"><i data-lucide="user" style="width:16px; color:var(--accent)"></i> Profile</h3>
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+          <div class="settings-avatar" id="settingsAvatar" onclick="document.getElementById('profilePicInput').click()" title="Change profile picture">
+            <span id="settingsAvatarLetter">E</span>
+            <img id="settingsAvatarImg" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%; position:absolute; inset:0;">
+            <div class="settings-avatar-overlay"><i data-lucide="camera" style="width:16px; height:16px"></i></div>
+          </div>
+          <div style="flex:1">
+            <p class="subtitle" style="margin-bottom:4px">Display Name</p>
+            <input type="text" id="setUsername" placeholder="Your name" style="margin-bottom:0">
+          </div>
+        </div>
+        <input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="handleProfilePic(event)">
+        <button class="btn btn-outline" onclick="saveProfile()"><i data-lucide="check" style="width:16px"></i> Save Profile</button>
+      </div>
+
+      <!-- Appearance -->
+      <div class="card animate-in delay-1" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:16px; font-size:16px"><i data-lucide="palette" style="width:16px; color:var(--accent)"></i> Appearance</h3>
+        <button class="btn btn-outline" onclick="toggleTheme()" id="themeToggleSettings"><i data-lucide="moon" style="width:16px"></i> Toggle Theme</button>
+      </div>
+
+      <!-- Daily Goals -->
+      <div class="card animate-in delay-2" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px; font-size: 16px;"><i data-lucide="target" style="width:16px; color:var(--accent)"></i> Daily Goals</h3>
         <p class="subtitle">Calories (kcal)</p>
         <input type="number" id="setCal">
         <p class="subtitle">Protein (g)</p>
@@ -708,9 +912,30 @@
         <input type="number" id="setWeight">
         <p class="subtitle">Water Target (ml)</p>
         <input type="number" id="setWater">
-        <button class="btn" style="margin-top:16px" onclick="saveSettings()"><i data-lucide="check-circle"></i> Save Goals</button>
+        <button class="btn" style="margin-top:8px" onclick="saveSettings()"><i data-lucide="check-circle"></i> Save Goals</button>
       </div>
-      <div style='text-align:center; margin-top: 40px; font-size: 13px; color: var(--text-muted); font-family: "DM Sans", sans-serif;'>
+
+      <!-- Food Library (moved from Library tab) -->
+      <div class="card animate-in delay-2" style="margin-bottom:20px">
+        <h3 style="margin-bottom: 16px; font-size: 16px;"><i data-lucide="book-open" style="width:16px; color:var(--accent)"></i> Food Library</h3>
+        <input type="text" id="libName" placeholder="Food name">
+        <div style="display:flex; gap:10px; margin-bottom:12px">
+          <input type="number" id="libCal" placeholder="Kcal">
+          <input type="number" id="libProt" placeholder="Prot (g)">
+        </div>
+        <button class="btn btn-outline" id="libSaveBtn" onclick="saveCustomFood()" style="margin-bottom:16px"><i data-lucide="save"></i> Save to Library</button>
+        <div id="libList"></div>
+      </div>
+
+      <!-- Data & Account -->
+      <div class="card animate-in delay-3" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px; font-size:16px"><i data-lucide="database" style="width:16px; color:var(--accent)"></i> Data & Account</h3>
+        <button class="btn btn-outline" style="margin-bottom:10px" onclick="exportUserData()"><i data-lucide="download" style="width:16px"></i> Export Data (JSON)</button>
+        <button class="btn btn-outline" style="margin-bottom:10px; border-color:var(--red); color:var(--red)" onclick="confirmDeleteAccount()"><i data-lucide="trash-2" style="width:16px"></i> Delete Account</button>
+        <button class="btn" style="background:var(--text-muted)" onclick="logout()"><i data-lucide="log-out" style="width:16px"></i> Log Out</button>
+      </div>
+
+      <div style='text-align:center; margin-top: 20px; margin-bottom:30px; font-size: 13px; color: var(--text-muted); font-family: "DM Sans", sans-serif;'>
         Made by <a href='https://abundant-screenshot-006275.framer.app/' target='_blank' style='color: var(--accent); text-decoration: none; font-weight: 600;'>emirerkan.com</a>
       </div>
     </div>
@@ -1101,9 +1326,11 @@ function applyThemeIcon() {
 }
 
 function switchTab(tab) {
-  ['dash', 'hist', 'lib', 'set'].forEach(t => {
-    document.getElementById(`tab-${t}`).classList.add('hidden');
-    document.getElementById(`nav-${t}`).classList.remove('active');
+  ['dash', 'hist', 'cam', 'chat', 'set'].forEach(t => {
+    const tabEl = document.getElementById(`tab-${t}`);
+    const navEl = document.getElementById(`nav-${t}`);
+    if (tabEl) tabEl.classList.add('hidden');
+    if (navEl) navEl.classList.remove('active');
   });
   document.getElementById(`tab-${tab}`).classList.remove('hidden');
   document.getElementById(`nav-${tab}`).classList.add('active');
@@ -1111,19 +1338,31 @@ function switchTab(tab) {
 
   // Right column: show only on dash and hist tabs
   const rightCol = document.querySelector('.right-col');
-  if (rightCol) rightCol.classList.toggle('hidden', tab === 'lib' || tab === 'set');
+  if (rightCol) rightCol.classList.toggle('hidden', tab !== 'dash' && tab !== 'hist');
   document.getElementById('right-dash').classList.toggle('hidden', tab !== 'dash');
   document.getElementById('right-hist').classList.toggle('hidden', tab !== 'hist');
 
+  // Stop camera when leaving cam tab
+  if (tab !== 'cam' && typeof stopCameraStream === 'function') stopCameraStream();
+
   if(tab === 'dash') renderDashboard();
   if(tab === 'hist') renderHistory();
-  if(tab === 'lib') renderLibrary();
   if(tab === 'set') {
     const u = getUser();
     document.getElementById('setCal').value = u.settings.calGoal;
     document.getElementById('setProt').value = u.settings.protGoal;
     document.getElementById('setWeight').value = u.settings.weightGoal;
     document.getElementById('setWater').value = u.settings.waterGoal || 3000;
+    document.getElementById('setUsername').value = u.settings.displayName || (activeUserEmail || '').split('@')[0];
+    // Load profile pic if saved
+    const avatarImg = document.getElementById('settingsAvatarImg');
+    if (u.settings.profilePic) {
+      avatarImg.src = u.settings.profilePic;
+      avatarImg.style.display = 'block';
+    }
+    const letter = document.getElementById('settingsAvatarLetter');
+    letter.textContent = (u.settings.displayName || (activeUserEmail || 'U').split('@')[0]).charAt(0).toUpperCase();
+    renderLibrary();
   }
   lucide.createIcons();
   
@@ -1698,7 +1937,7 @@ document.addEventListener('keydown', (e) => {
 // AI FOOD LOGGER — Gemini 1.5 Flash
 // ═══════════════════════════════════════════
 const GEMINI_API_KEY = 'AIzaSyA0lJ8ix37wqpJkjgm2nQquC1kyqkThtRo';
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 let _aiImageBase64 = null;   // base64 data (no prefix)
 let _aiImageMime = null;     // e.g. 'image/jpeg'
@@ -1799,7 +2038,8 @@ Rules:
     contents: [{ parts }],
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: 300
+      maxOutputTokens: 300,
+      responseMimeType: 'application/json'
     }
   };
 
@@ -1877,6 +2117,332 @@ Rules:
 }
 
 
+// ═══════════════════════════════════════════
+// CAMERA TAB LOGIC
+// ═══════════════════════════════════════════
+let _camStream = null;
+let _camFacing = 'environment'; // or 'user'
+let _camCapturedBase64 = null;
+let _camCapturedMime = null;
+
+async function startCameraStream() {
+  try {
+    if (_camStream) stopCameraStream();
+    const constraints = { video: { facingMode: _camFacing, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false };
+    _camStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('camVideo');
+    video.srcObject = _camStream;
+    video.style.display = 'block';
+    document.getElementById('camPlaceholder').style.display = 'none';
+    document.getElementById('camPreviewImg').style.display = 'none';
+    document.getElementById('camScanLine').style.display = 'none';
+    _camCapturedBase64 = null;
+    _camCapturedMime = null;
+    // Change shutter to "capture" mode
+    document.getElementById('camShutterBtn').classList.remove('recording');
+  } catch (err) {
+    console.error('Camera access failed:', err);
+    flash('Camera access denied. Use Gallery instead.');
+  }
+}
+
+function stopCameraStream() {
+  if (_camStream) {
+    _camStream.getTracks().forEach(t => t.stop());
+    _camStream = null;
+  }
+  const video = document.getElementById('camVideo');
+  if (video) { video.srcObject = null; video.style.display = 'none'; }
+}
+
+function captureOrToggleCamera() {
+  const video = document.getElementById('camVideo');
+  if (_camCapturedBase64) {
+    // Already captured — start fresh
+    _camCapturedBase64 = null;
+    _camCapturedMime = null;
+    document.getElementById('camPreviewImg').style.display = 'none';
+    document.getElementById('camScanLine').style.display = 'none';
+    document.getElementById('camCommentCard').style.display = 'none';
+    document.getElementById('camResultFields').style.display = 'none';
+    startCameraStream();
+    return;
+  }
+  if (!_camStream) {
+    startCameraStream();
+    return;
+  }
+  // Capture frame
+  const canvas = document.getElementById('camCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  _camCapturedBase64 = dataUrl.split(',')[1];
+  _camCapturedMime = 'image/jpeg';
+  // Show preview
+  document.getElementById('camPreviewImg').src = dataUrl;
+  document.getElementById('camPreviewImg').style.display = 'block';
+  stopCameraStream();
+  document.getElementById('camPlaceholder').style.display = 'none';
+}
+
+function switchCameraFacing() {
+  _camFacing = _camFacing === 'environment' ? 'user' : 'environment';
+  if (_camStream) startCameraStream();
+}
+
+function openGalleryForCam() {
+  document.getElementById('camGalleryInput').click();
+}
+
+function handleGalleryForCam(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    _camCapturedBase64 = dataUrl.split(',')[1];
+    _camCapturedMime = file.type || 'image/jpeg';
+    stopCameraStream();
+    document.getElementById('camPreviewImg').src = dataUrl;
+    document.getElementById('camPreviewImg').style.display = 'block';
+    document.getElementById('camPlaceholder').style.display = 'none';
+    document.getElementById('camVideo').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeFromCamera() {
+  const hasImage = !!_camCapturedBase64;
+  const textInput = document.getElementById('camTextInput').value.trim();
+  const hasText = !!textInput;
+
+  if (!hasImage && !hasText) {
+    flash('Take a photo or upload one first.');
+    return;
+  }
+
+  const btn = document.getElementById('camAnalyzeBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<i data-lucide="loader" style="width:16px"></i> Analyzing…';
+  document.getElementById('camScanLine').style.display = hasImage ? 'block' : 'none';
+  lucide.createIcons();
+
+  const systemPrompt = `You are an expert, supportive nutritionist. Analyze the provided image, text, or both to identify the food and estimate calories and protein. You must also provide a short, helpful text comment—this could be feedback on the choice, a note on portion size, or a tip for hitting macro goals.\n\nYou MUST return ONLY valid JSON matching this exact schema:\n{"name": "String", "calories": Number, "proteins": Number, "ai_comment": "String"}`;
+
+  let userText = '';
+  if (hasText && hasImage) userText = `Here is a photo of my meal along with a description: "${textInput}". Please analyze it.`;
+  else if (hasText) userText = `I ate the following: "${textInput}". Please analyze this meal.`;
+  else userText = 'Please analyze this food photo and identify what it is, estimate calories and protein.';
+
+  const parts = [{ text: systemPrompt + '\n\n' + userText }];
+  if (hasImage) {
+    parts.push({ inline_data: { mime_type: _camCapturedMime, data: _camCapturedBase64 } });
+  }
+
+  const payload = {
+    contents: [{ parts }],
+    generationConfig: { temperature: 0.3, maxOutputTokens: 300, responseMimeType: 'application/json' }
+  };
+
+  try {
+    const response = await fetch(GEMINI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error(`API error ${response.status}`);
+    const data = await response.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) throw new Error('Empty response');
+    const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const result = JSON.parse(cleaned);
+
+    document.getElementById('camFoodName').value = result.name || '';
+    document.getElementById('camFoodCal').value = Math.round(result.calories || 0);
+    document.getElementById('camFoodProt').value = Math.round(result.proteins || 0);
+    document.getElementById('camResultFields').style.display = 'flex';
+
+    const cc = document.getElementById('camCommentCard');
+    cc.style.display = 'block';
+    cc.innerHTML = `<div class="ai-comment-header"><i data-lucide="sparkles" style="width:14px;height:14px"></i> AI Nutritionist <span class="ai-badge">Gemini Flash</span></div><div class="ai-comment-text">${escapeHtml(result.ai_comment || 'Analysis complete.')}</div>`;
+    flash('AI analysis complete!');
+  } catch (err) {
+    console.error('Camera AI Error:', err);
+    flash('Analysis failed — try again.');
+    document.getElementById('camResultFields').style.display = 'flex';
+    const cc = document.getElementById('camCommentCard');
+    cc.style.display = 'block';
+    cc.innerHTML = `<div class="ai-comment-header" style="color:var(--red)"><i data-lucide="alert-triangle" style="width:14px;height:14px"></i> Analysis Failed</div><div class="ai-comment-text" style="color:var(--text-muted)">Could not analyze. Enter details manually or try again.</div>`;
+  } finally {
+    document.getElementById('camScanLine').style.display = 'none';
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = '<i data-lucide="sparkles" style="width:16px"></i> Analyze with AI';
+    lucide.createIcons();
+  }
+}
+
+function addFoodFromCam() {
+  const u = getUser();
+  const name = document.getElementById('camFoodName').value.trim();
+  const cal = parseFloat(document.getElementById('camFoodCal').value) || 0;
+  const prot = parseFloat(document.getElementById('camFoodProt').value) || 0;
+  if (!name || !cal) { flash("Need name and calories"); return; }
+  const t = selectedDate;
+  if (!u.logs[t]) u.logs[t] = [];
+  u.logs[t].push({ id: Date.now() + '', name, calories: cal, protein: prot });
+  saveCloud();
+  document.getElementById('camFoodName').value = '';
+  document.getElementById('camFoodCal').value = '';
+  document.getElementById('camFoodProt').value = '';
+  document.getElementById('camResultFields').style.display = 'none';
+  document.getElementById('camCommentCard').style.display = 'none';
+  document.getElementById('camTextInput').value = '';
+  _camCapturedBase64 = null;
+  _camCapturedMime = null;
+  document.getElementById('camPreviewImg').style.display = 'none';
+  document.getElementById('camPlaceholder').style.display = 'flex';
+  renderDashboard();
+  flash("Food added!");
+}
+
+// ═══════════════════════════════════════════
+// AI CHATBOT
+// ═══════════════════════════════════════════
+let _chatHistory = [];
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  // Add user bubble
+  const container = document.getElementById('chatMessages');
+  const userInitial = (getUser().settings.displayName || activeUserEmail || 'U').charAt(0).toUpperCase();
+  container.innerHTML += `<div class="chat-bubble user"><div class="chat-avatar">${userInitial}</div><div class="chat-text">${escapeHtml(msg)}</div></div>`;
+  container.scrollTop = container.scrollHeight;
+
+  // Add to history
+  _chatHistory.push({ role: 'user', parts: [{ text: msg }] });
+
+  // Show typing indicator
+  const typingId = 'typing-' + Date.now();
+  container.innerHTML += `<div class="chat-bubble ai" id="${typingId}"><div class="chat-avatar"><i data-lucide="sparkles" style="width:14px;height:14px"></i></div><div class="chat-text" style="color:var(--text-muted)">Thinking…</div></div>`;
+  lucide.createIcons();
+  container.scrollTop = container.scrollHeight;
+
+  const systemInstruction = `You are STRONG AI, an expert, friendly, and supportive nutritionist assistant inside a fitness and nutrition tracking app called STRONG. The user's current daily goals are: ${getUser().settings.calGoal} kcal calories, ${getUser().settings.protGoal}g protein, ${getUser().settings.waterGoal || 3000}ml water. Answer questions about nutrition, meal planning, macros, and fitness. Be concise but helpful. Use emoji sparingly.`;
+
+  const contents = [
+    { role: 'user', parts: [{ text: systemInstruction }] },
+    { role: 'model', parts: [{ text: 'Understood! I\'m STRONG AI, your personal nutritionist. How can I help?' }] },
+    ..._chatHistory
+  ];
+
+  try {
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 800 } })
+    });
+    if (!response.ok) throw new Error('API error');
+    const data = await response.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t generate a response.';
+
+    _chatHistory.push({ role: 'model', parts: [{ text: reply }] });
+    // Keep last 20 messages
+    if (_chatHistory.length > 20) _chatHistory = _chatHistory.slice(-20);
+
+    const el = document.getElementById(typingId);
+    if (el) el.querySelector('.chat-text').innerHTML = reply.replace(/\n/g, '<br>');
+  } catch (err) {
+    console.error('Chat error:', err);
+    const el = document.getElementById(typingId);
+    if (el) el.querySelector('.chat-text').innerHTML = 'Sorry, something went wrong. Please try again.';
+  }
+  lucide.createIcons();
+  container.scrollTop = container.scrollHeight;
+}
+
+// ═══════════════════════════════════════════
+// PROFILE, EXPORT, DELETE ACCOUNT
+// ═══════════════════════════════════════════
+function handleProfilePic(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Resize to small thumbnail for storage
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 128;
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const min = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, size, size);
+      const small = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('settingsAvatarImg').src = small;
+      document.getElementById('settingsAvatarImg').style.display = 'block';
+      getUser().settings.profilePic = small;
+      saveCloud();
+      flash('Profile picture updated!');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProfile() {
+  const u = getUser();
+  const name = document.getElementById('setUsername').value.trim();
+  if (name) {
+    u.settings.displayName = name;
+    document.getElementById('userDisplay').textContent = escapeHtml(name);
+    document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('settingsAvatarLetter').textContent = name.charAt(0).toUpperCase();
+  }
+  saveCloud();
+  flash('Profile saved!');
+}
+
+function exportUserData() {
+  const u = getUser();
+  const blob = new Blob([JSON.stringify(u, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `strong-data-${today()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  flash('Data exported!');
+}
+
+function confirmDeleteAccount() {
+  if (!confirm('⚠️ Delete your account and ALL data? This cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure? Type OK to confirm.')) return;
+  deleteAccount();
+}
+
+async function deleteAccount() {
+  try {
+    // Delete user data from Firebase
+    await window._firebaseSet(window._firebaseRef(window._firebaseDb, 'users/' + activeUser), null);
+    // Sign out
+    await window._firebaseSignOut();
+    activeUser = null;
+    activeUserEmail = null;
+    masterData = {};
+    flash('Account deleted.');
+    document.getElementById('authScreen').style.display = 'flex';
+    showLogin();
+  } catch (err) {
+    console.error('Delete account error:', err);
+    flash('Failed to delete account.');
+  }
+}
 
 // initApp(); // Removed: Auth listener handles init now
 
